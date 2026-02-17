@@ -194,8 +194,8 @@ export default {
     };
     const origin = request.headers.get('Origin');
     const isBootstrap = url.pathname === '/api/admin/bootstrap' || url.pathname === '/api/admin/bootstrap/';
-    // CORS: allow same-origin; for bootstrap POST allow cross-origin (Pages vs Worker on different domains)
-    if (origin && (checkOrigin(request, host) || (isBootstrap && request.method === 'POST'))) {
+    // CORS: allow cross-origin for all /api/ when Origin present (Pages and Worker on different domains)
+    if (origin && url.pathname.startsWith('/api/')) {
       corsHeaders['Access-Control-Allow-Origin'] = origin;
     }
 
@@ -216,11 +216,7 @@ export default {
       } else if (url.pathname.startsWith('/api/auth/')) {
         res = await handleAuth(request, env, url, shop!.id, corsHeaders);
       } else if (url.pathname.startsWith('/api/admin/')) {
-        if (!isBootstrap && !checkOrigin(request, host) && ['POST', 'PUT', 'DELETE'].includes(request.method)) {
-          res = apiError('Invalid origin', 403);
-        } else {
-          res = await handleAdmin(request, env, url, shop?.id ?? 0, corsHeaders);
-        }
+        res = await handleAdmin(request, env, url, shop?.id ?? 0, corsHeaders);
       } else {
         res = json({ ok: false, error: 'Not found' }, { status: 404 });
       }
@@ -457,14 +453,14 @@ async function handleAuth(
     const res = apiSuccess({ userId: u.id, shopId: u.shop_id });
     res.headers.set(
       'Set-Cookie',
-      `${SESSION_COOKIE}=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${SESSION_MAX_AGE}`
+      `${SESSION_COOKIE}=${token}; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=${SESSION_MAX_AGE}`
     );
     return res;
   }
 
   if (path === 'logout' && request.method === 'POST') {
     const res = apiSuccess({});
-    res.headers.set('Set-Cookie', `${SESSION_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`);
+    res.headers.set('Set-Cookie', `${SESSION_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=0`);
     return res;
   }
 
