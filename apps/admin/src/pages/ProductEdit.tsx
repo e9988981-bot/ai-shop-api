@@ -40,6 +40,8 @@ export default function ProductEdit() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     slug: '',
@@ -83,10 +85,18 @@ export default function ProductEdit() {
 
   const handleSave = async () => {
     if (!id || !product) return;
+    setError('');
+    setSuccess('');
     setSaving(true);
     const res = await apiPut(`/api/admin/products/${id}`, form);
     setSaving(false);
-    if (res.ok && res.data) setProduct(res.data as Product);
+    if (res.ok && res.data) {
+      setProduct(res.data as Product);
+      setSuccess('บันทึกข้อมูลสำเร็จ');
+      setTimeout(() => setSuccess(''), 3000);
+    } else {
+      setError(res.error || 'ไม่สามารถบันทึกข้อมูลได้');
+    }
   };
 
   const uploadImage = async (file: File) => {
@@ -173,6 +183,16 @@ export default function ProductEdit() {
       </div>
 
       <div className="max-w-2xl space-y-6">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+            {error}
+          </div>
+        )}
+        {success && (
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm">
+            {success}
+          </div>
+        )}
         {/* ข้อมูลพื้นฐาน */}
         <div className="card-admin">
           <h2 className="font-semibold text-slate-800 mb-4">ข้อมูลสินค้า</h2>

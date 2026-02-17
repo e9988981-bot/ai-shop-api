@@ -68,28 +68,32 @@ export default function WaNumbers() {
       </p>
 
       <div className="max-w-xl space-y-6">
-        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-          <h2 className="font-semibold text-slate-800 mb-3">เพิ่มเบอร์</h2>
-          <form onSubmit={handleAdd} className="flex flex-wrap gap-3 items-end">
-            <div>
-              <label className="block text-sm text-slate-600 mb-1">ชื่อ (เช่น เบอร์หลัก)</label>
-              <input
-                value={form.label}
-                onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
-                className="w-32 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                placeholder="เบอร์หลัก"
-              />
+        <div className="card-admin">
+          <h2 className="font-semibold text-slate-800 mb-4">เพิ่มเบอร์</h2>
+          <form onSubmit={handleAdd} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">ชื่อ (เช่น เบอร์หลัก)</label>
+                <input
+                  value={form.label}
+                  onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
+                  className="input-admin"
+                  placeholder="เบอร์หลัก"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">เบอร์ (E.164 เช่น +8562012345678)</label>
+                <input
+                  value={form.phone_e164}
+                  onChange={(e) => setForm((f) => ({ ...f, phone_e164: e.target.value }))}
+                  className="input-admin"
+                  placeholder="+8562012345678"
+                  required
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm text-slate-600 mb-1">เบอร์ (E.164 เช่น +8562012345678)</label>
-              <input
-                value={form.phone_e164}
-                onChange={(e) => setForm((f) => ({ ...f, phone_e164: e.target.value }))}
-                className="w-44 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                placeholder="+8562012345678"
-              />
-            </div>
-            <label className="flex items-center gap-2 text-sm text-slate-600">
+            <label className="flex items-center gap-2 text-sm text-slate-700">
               <input
                 type="checkbox"
                 checked={form.is_default}
@@ -98,17 +102,14 @@ export default function WaNumbers() {
               />
               เป็นค่าเริ่มต้น
             </label>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
-            >
-              เพิ่ม
+            <button type="submit" className="btn-primary">
+              เพิ่มเบอร์
             </button>
           </form>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-          <h2 className="font-semibold text-slate-800 mb-3">รายการเบอร์</h2>
+        <div className="card-admin">
+          <h2 className="font-semibold text-slate-800 mb-4">รายการเบอร์</h2>
           {items.length === 0 ? (
             <p className="text-slate-500 text-sm">ยังไม่มีเบอร์ — เพิ่มด้านบน</p>
           ) : (
@@ -125,18 +126,18 @@ export default function WaNumbers() {
                       <button
                         type="button"
                         onClick={() => setDefault(item.id)}
-                        className="text-xs px-2 py-1 bg-slate-100 rounded hover:bg-slate-200"
+                        className="text-sm px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200"
                       >
                         ตั้งเป็นค่าเริ่มต้น
                       </button>
                     )}
                     {item.is_default && (
-                      <span className="text-xs text-green-600 font-medium">ค่าเริ่มต้น</span>
+                      <span className="text-sm text-green-600 font-medium px-2">ค่าเริ่มต้น</span>
                     )}
                     <button
                       type="button"
                       onClick={() => remove(item.id)}
-                      className="text-xs px-2 py-1 text-red-600 hover:bg-red-50 rounded"
+                      className="text-sm px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100"
                     >
                       ลบ
                     </button>
