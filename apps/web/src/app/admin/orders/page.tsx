@@ -3,8 +3,19 @@
 import { useEffect, useState } from 'react';
 import { apiGet, apiPut } from '@/lib/api';
 
+interface OrderItem {
+  id: number;
+  customer_name: string;
+  customer_phone: string;
+  product_name_en?: string;
+  product_name_lo?: string;
+  qty: number;
+  status: string;
+  created_at: string;
+}
+
 export default function AdminOrdersPage() {
-  const [data, setData] = useState<{ items: Record<string, unknown>[]; total: number } | null>(null);
+  const [data, setData] = useState<{ items: OrderItem[]; total: number } | null>(null);
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState('');
   const [search, setSearch] = useState('');
@@ -13,7 +24,7 @@ export default function AdminOrdersPage() {
     const params = new URLSearchParams({ page: String(page), limit: '20' });
     if (status) params.set('status', status);
     if (search) params.set('search', search);
-    apiGet<{ items: Record<string, unknown>[]; total: number }>(`/api/admin/orders?${params}`).then((res) => {
+    apiGet<{ items: OrderItem[]; total: number }>(`/api/admin/orders?${params}`).then((res) => {
       if (res.ok && res.data) setData(res.data);
     });
   }, [page, status, search]);
@@ -77,16 +88,16 @@ export default function AdminOrdersPage() {
           </thead>
           <tbody>
             {data?.items?.map((o) => (
-              <tr key={String(o.id)} className="border-t">
-                <td className="px-4 py-2">{String(o.id)}</td>
-                <td className="px-4 py-2">{String(o.customer_name ?? '')}</td>
-                <td className="px-4 py-2">{String(o.customer_phone ?? '')}</td>
-                <td className="px-4 py-2">{String(o.product_name_en ?? o.product_name_lo ?? '')}</td>
-                <td className="px-4 py-2">{String(o.qty ?? '')}</td>
+              <tr key={o.id} className="border-t">
+                <td className="px-4 py-2">{o.id}</td>
+                <td className="px-4 py-2">{o.customer_name}</td>
+                <td className="px-4 py-2">{o.customer_phone}</td>
+                <td className="px-4 py-2">{o.product_name_en || o.product_name_lo || ''}</td>
+                <td className="px-4 py-2">{o.qty}</td>
                 <td className="px-4 py-2">
                   <select
-                    value={String(o.status)}
-                    onChange={(e) => updateStatus(Number(o.id), e.target.value)}
+                    value={o.status}
+                    onChange={(e) => updateStatus(o.id, e.target.value)}
                     className="text-sm border rounded"
                   >
                     <option value="new">New</option>
@@ -95,7 +106,7 @@ export default function AdminOrdersPage() {
                     <option value="canceled">Canceled</option>
                   </select>
                 </td>
-                <td className="px-4 py-2">{String(o.created_at)}</td>
+                <td className="px-4 py-2">{o.created_at}</td>
                 <td className="px-4 py-2">-</td>
               </tr>
             ))}
