@@ -67,13 +67,7 @@ export function ShopPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
-        <a
-          href={process.env.NEXT_PUBLIC_ADMIN_URL ? `${process.env.NEXT_PUBLIC_ADMIN_URL.replace(/\/$/, '')}/admin` : '/admin'}
-          className="px-3 py-1.5 text-sm font-medium text-white/90 hover:text-white bg-black/20 hover:bg-black/30 rounded-lg transition"
-        >
-          {locale === 'lo' ? 'ເຂົ້າສູ່ລະບົບ' : 'Admin'}
-        </a>
+      <div className="absolute top-4 right-4 z-10">
         <LocaleToggle />
       </div>
       {shop && (

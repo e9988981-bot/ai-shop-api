@@ -188,6 +188,11 @@ export default {
     const url = new URL(request.url);
     const host = request.headers.get('Host') || '';
 
+    // เข้า root โดเมน Worker = ไปหลังบ้าน
+    if (url.pathname === '/' || url.pathname === '') {
+      return Response.redirect(new URL('/admin', request.url), 302);
+    }
+
     // Proxy /admin and /assets to admin frontend (หลังบ้านที่ Worker)
     if (url.pathname.startsWith('/admin') || url.pathname.startsWith('/assets')) {
       const adminOrigin = (env.ADMIN_ORIGIN || '').replace(/\/$/, '');
