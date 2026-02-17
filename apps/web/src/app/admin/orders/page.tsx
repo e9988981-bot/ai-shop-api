@@ -78,11 +78,11 @@ export default function AdminOrdersPage() {
           <tbody>
             {data?.items?.map((o) => (
               <tr key={String(o.id)} className="border-t">
-                <td className="px-4 py-2">{o.id}</td>
-                <td className="px-4 py-2">{String(o.customer_name)}</td>
-                <td className="px-4 py-2">{String(o.customer_phone)}</td>
-                <td className="px-4 py-2">{String(o.product_name_en || o.product_name_lo)}</td>
-                <td className="px-4 py-2">{o.qty}</td>
+                <td className="px-4 py-2">{String(o.id)}</td>
+                <td className="px-4 py-2">{String(o.customer_name ?? '')}</td>
+                <td className="px-4 py-2">{String(o.customer_phone ?? '')}</td>
+                <td className="px-4 py-2">{String(o.product_name_en ?? o.product_name_lo ?? '')}</td>
+                <td className="px-4 py-2">{String(o.qty ?? '')}</td>
                 <td className="px-4 py-2">
                   <select
                     value={String(o.status)}
