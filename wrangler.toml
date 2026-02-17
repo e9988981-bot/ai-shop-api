@@ -1,0 +1,16 @@
+# Root-level wrangler.toml for API Worker deployment
+# Used when deploying from repository root via GitHub
+name = "ai-shop-api"
+main = "apps/api/dist/worker.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ai-shop-db"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "ai-shop-uploads"

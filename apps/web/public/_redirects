@@ -1,0 +1,2 @@
+# SPA-style rewrites for product slugs (static export)
+/products/* /products/default/ 200

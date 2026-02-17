@@ -1,0 +1,19 @@
+{
+  "name": "ai-shop-api",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "npx wrangler dev"
+  },
+  "dependencies": {
+    "@ai-shop/shared": "workspace:*",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240208.0",
+    "esbuild": "^0.20.0",
+    "typescript": "^5.3.3",
+    "wrangler": "^3.50.0"
+  }
+}
