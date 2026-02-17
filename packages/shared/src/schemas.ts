@@ -17,6 +17,7 @@ export const orderPublicSchema = z.object({
 });
 
 export const shopUpdateSchema = z.object({
+  domain: z.string().min(1).max(255).optional(),
   name_lo: z.string().min(1).max(200).optional(),
   name_en: z.string().min(1).max(200).optional(),
   desc_lo: z.string().max(2000).optional().nullable(),

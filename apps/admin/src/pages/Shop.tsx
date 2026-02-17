@@ -11,6 +11,7 @@ export default function Shop() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
+    domain: '',
     name_lo: '',
     name_en: '',
     desc_lo: '',
@@ -27,6 +28,7 @@ export default function Shop() {
       if (res.ok && res.data) {
         setShop(res.data);
         setForm({
+          domain: String(res.data.domain ?? ''),
           name_lo: String(res.data.name_lo ?? ''),
           name_en: String(res.data.name_en ?? ''),
           desc_lo: String(res.data.desc_lo ?? ''),
@@ -147,6 +149,48 @@ export default function Shop() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* โดเมนร้าน (สำหรับหน้าร้าน) */}
+        <div className="card-admin">
+          <h2 className="font-semibold text-slate-800 mb-4">ໂດເມນຮ້ານ (ສຳລັບຫນ້າລູກຄ້າ)</h2>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Subdomain ສຳລັບຫນ້າລູກຄ້າ
+            </label>
+            <input
+              value={form.domain}
+              onChange={(e) => setForm((f) => ({ ...f, domain: e.target.value }))}
+              className="input-admin"
+              placeholder="shop1.example.com หรือ myshop.example.com"
+            />
+            <div className="mt-2 space-y-1">
+              <p className="text-xs text-slate-600">
+                <strong>ຕົວຢ່າງ Subdomain:</strong>
+              </p>
+              <ul className="text-xs text-slate-500 list-disc list-inside space-y-0.5">
+                <li><code>shop1.example.com</code> - ຮ້ານທີ່ 1</li>
+                <li><code>shop2.example.com</code> - ຮ້ານທີ່ 2</li>
+                <li><code>myshop.example.com</code> - ຮ້ານຂອງຂ້ອຍ</li>
+              </ul>
+            </div>
+            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-xs font-medium text-blue-900 mb-1">📋 ວິທີຕັ້ງຄ່າ:</p>
+              <ol className="text-xs text-blue-800 list-decimal list-inside space-y-0.5">
+                <li>ໄປທີ່ Cloudflare Dashboard → DNS → Add record</li>
+                <li>Type: <code>CNAME</code>, Name: <code>shop1</code>, Target: <code>worker-name.xxx.workers.dev</code></li>
+                <li>ໄປທີ່ Worker → Settings → Triggers → Custom Domains → Add</li>
+                <li>ລະບົບຈະອອກ SSL ໃຫ້ອັດຕະໂນມັດ</li>
+              </ol>
+            </div>
+            {form.domain && (
+              <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded">
+                <p className="text-xs text-green-800">
+                  ✅ ລູກຄ້າຈະເຂົ້າມາເບິ່ງຮ້ານທີ່: <strong className="font-mono">https://{form.domain}</strong>
+                </p>
+              </div>
+            )}
           </div>
         </div>
 

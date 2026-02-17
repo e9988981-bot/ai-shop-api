@@ -57,9 +57,27 @@ export function ShopPage() {
         apiGet<Category[]>('/api/public/categories'),
       ]);
       if (shopRes.ok && shopRes.data) setShop(shopRes.data);
-      if (productsRes.ok && Array.isArray(productsRes.data)) setProducts(productsRes.data);
-      else if (productsRes.ok && productsRes.data && typeof productsRes.data === 'object' && 'items' in productsRes.data) {
-        setProducts((productsRes.data as { items: Product[] }).items || []);
+      if (productsRes.ok && Array.isArray(productsRes.data)) {
+        setProducts(productsRes.data);
+        // Debug: Check if prices are present
+        if (productsRes.data.length > 0) {
+          console.log('Products with prices:', productsRes.data.map((p: Product) => ({ 
+            name: p.name_lo || p.name_en, 
+            price: p.price,
+            priceType: typeof p.price 
+          })));
+        }
+      } else if (productsRes.ok && productsRes.data && typeof productsRes.data === 'object' && 'items' in productsRes.data) {
+        const items = (productsRes.data as { items: Product[] }).items || [];
+        setProducts(items);
+        // Debug: Check if prices are present
+        if (items.length > 0) {
+          console.log('Products with prices:', items.map((p: Product) => ({ 
+            name: p.name_lo || p.name_en, 
+            price: p.price,
+            priceType: typeof p.price 
+          })));
+        }
       }
       if (categoriesRes.ok && Array.isArray(categoriesRes.data)) setCategories(categoriesRes.data);
       setLoading(false);
@@ -175,11 +193,15 @@ export function ShopPage() {
                   <h3 className="font-semibold text-slate-800 line-clamp-2 group-hover:text-blue-600 transition-colors">
                     {getBilingual(locale, { lo: p.name_lo, en: p.name_en })}
                   </h3>
-                  {p.price > 0 && (
-                    <p className="text-lg font-bold mt-2 text-slate-900" style={{ color: shop?.theme_primary || '#2563eb' }}>
-                      ₭{p.price.toLocaleString()}
-                    </p>
-                  )}
+                  <p className="text-lg font-bold mt-2" style={{ color: shop?.theme_primary || '#2563eb' }}>
+                    {p.price != null && Number(p.price) > 0 ? (
+                      `₭${Number(p.price).toLocaleString()}`
+                    ) : (
+                      <span className="text-slate-500 text-sm font-normal">
+                        {locale === 'lo' ? 'ຕິດຕໍ່ສອບຖາມ' : 'Contact for price'}
+                      </span>
+                    )}
+                  </p>
                 </div>
               </Link>
             ))}

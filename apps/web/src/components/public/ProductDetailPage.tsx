@@ -178,7 +178,15 @@ export function ProductDetailPage({ slug }: { slug: string }) {
             <h1 className="text-xl font-bold text-slate-800">
               {getBilingual(locale, { lo: product.name_lo, en: product.name_en })}
             </h1>
-            <p className="text-2xl font-bold mt-2 text-blue-600">₭{product.price.toLocaleString()}</p>
+            <p className="text-2xl font-bold mt-2 text-blue-600">
+              {product.price != null && Number(product.price) > 0 ? (
+                `₭${Number(product.price).toLocaleString()}`
+              ) : (
+                <span className="text-slate-500 text-lg font-normal">
+                  {locale === 'lo' ? 'ຕິດຕໍ່ສອບຖາມ' : 'Contact for price'}
+                </span>
+              )}
+            </p>
             {(product.desc_lo || product.desc_en) && (
               <p className="mt-4 text-slate-600 leading-relaxed">
                 {getBilingual(locale, { lo: product.desc_lo || '', en: product.desc_en || '' })}

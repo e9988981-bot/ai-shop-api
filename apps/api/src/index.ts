@@ -255,10 +255,13 @@ export default {
       url.pathname === '/api/auth/me/' ||
       url.pathname === '/api/auth/logout' ||
       url.pathname === '/api/auth/logout/';
+    const isLogin = url.pathname === '/api/auth/login' || url.pathname === '/api/auth/login/';
+    // สำหรับ login และ bootstrap: ไม่ต้องเช็ค shop (จะหา user จาก email เท่านั้น)
     if (
       !shop &&
       !isBootstrap &&
       !isAuthMeOrLogout &&
+      !isLogin &&
       (url.pathname.startsWith('/api/public') || url.pathname.startsWith('/api/admin') || url.pathname.startsWith('/api/auth'))
     ) {
       return json({ ok: false, error: 'Shop not found' }, { status: 404, headers: corsHeaders });
@@ -268,9 +271,10 @@ export default {
       let res: Response;
 
       if (url.pathname.startsWith('/api/public/')) {
-        res = await handlePublic(request, env, url, shop!.id, corsHeaders);
+        res = await handlePublic(request, env, url, shop?.id ?? 0, corsHeaders);
       } else if (url.pathname.startsWith('/api/auth/')) {
-        res = await handleAuth(request, env, url, shop?.id ?? 0, corsHeaders);
+        // สำหรับ auth: ไม่ต้องใช้ shopId จาก host (login หา user จาก email เท่านั้น)
+        res = await handleAuth(request, env, url, 0, corsHeaders);
       } else if (url.pathname.startsWith('/api/admin/')) {
         res = await handleAdmin(request, env, url, shop?.id ?? 0, corsHeaders);
       } else {
@@ -493,10 +497,11 @@ async function handleAuth(
       return apiError('Invalid email or password', 401);
     }
     const { email, password } = parsed.data;
+    // หา user จาก email เท่านั้น (ไม่ใช้ shopId จาก host)
     const user = await env.DB.prepare(
-      'SELECT id, shop_id, password_hash FROM users WHERE shop_id = ? AND email = ?'
+      'SELECT id, shop_id, password_hash FROM users WHERE email = ?'
     )
-      .bind(shopId, email)
+      .bind(email)
       .first();
     if (!user) {
       return apiError('Invalid email or password', 401);
@@ -526,11 +531,12 @@ async function handleAuth(
     const token = match ? match[1] : null;
     if (!token) return apiError('Unauthorized', 401);
     const sess = await verifySession(env, token);
-    if (!sess || sess.shopId !== shopId) return apiError('Unauthorized', 401);
+    if (!sess) return apiError('Unauthorized', 401);
+    // ใช้ shopId จาก session เท่านั้น (ไม่เช็คกับ host header)
     const user = await env.DB.prepare(
       'SELECT id, shop_id, email, role, created_at, last_login_at FROM users WHERE id = ? AND shop_id = ?'
     )
-      .bind(sess.userId, shopId)
+      .bind(sess.userId, sess.shopId)
       .first();
     if (!user) return apiError('Unauthorized', 401);
     return apiSuccess(user);
@@ -562,11 +568,6 @@ async function handleAdmin(
 
   if (path === 'bootstrap' && request.method === 'POST') {
     try {
-      const countResult = await env.DB.prepare('SELECT COUNT(*) as c FROM users').first<{ c: number }>();
-      const count = countResult?.c ?? 0;
-      if (count > 0) {
-        return apiError('Bootstrap is disabled. Users already exist.', 403);
-      }
       const body = await request.json().catch(() => ({}));
       const { bootstrapSchema } = await import('@ai-shop/shared');
       const parsed = bootstrapSchema.safeParse(body);
@@ -574,27 +575,46 @@ async function handleAdmin(
         return apiError(parsed.error.errors.map((e) => e.message).join(', '), 400);
       }
       const d = parsed.data;
-      const domain = normalizeDomain(d.domain);
-      if (!domain) return apiError('Invalid domain', 400);
-      const existing = await env.DB.prepare('SELECT id FROM shops WHERE domain = ?').bind(domain).first();
-      if (existing) return apiError('Domain already exists', 400);
-      const hash = await hashPassword(d.password);
-      const result = await env.DB.prepare(
-        'INSERT INTO shops (domain, name_lo, name_en, desc_lo, desc_en) VALUES (?, ?, ?, ?, ?)'
-      )
-        .bind(domain, d.shop_name_lo, d.shop_name_en, null, null)
-        .run();
-      const meta = (result as { meta?: { last_row_id?: number } }).meta;
-      const shopIdNew = Number(meta?.last_row_id ?? 0);
-      if (!shopIdNew) {
-        return apiError('Database error: could not get new shop id', 500);
+      
+      // ตรวจสอบว่า email นี้มีร้านอยู่แล้วหรือไม่
+      const existingUser = await env.DB.prepare('SELECT shop_id FROM users WHERE email = ?').bind(d.email).first();
+      if (existingUser) {
+        return apiError('Email นี้มีร้านอยู่แล้ว กรุณาใช้ email อื่น', 400);
       }
+      
+      // ใช้ domain จาก host header หรือ domain ที่ส่งมา
+      const domain = normalizeDomain(d.domain) || normalizeHost(request.headers.get('Host') || '');
+      if (!domain) return apiError('Invalid domain', 400);
+      
+      // ตรวจสอบว่า domain นี้มีร้านอยู่แล้วหรือไม่ (ถ้ามีแล้วให้ใช้ร้านเดิม)
+      let shopIdNew: number;
+      const existingShop = await env.DB.prepare('SELECT id FROM shops WHERE domain = ?').bind(domain).first<{ id: number }>();
+      
+      if (existingShop) {
+        // ใช้ร้านเดิม
+        shopIdNew = existingShop.id;
+      } else {
+        // สร้างร้านใหม่
+        const result = await env.DB.prepare(
+          'INSERT INTO shops (domain, name_lo, name_en, desc_lo, desc_en) VALUES (?, ?, ?, ?, ?)'
+        )
+          .bind(domain, d.shop_name_lo, d.shop_name_en, null, null)
+          .run();
+        const meta = (result as { meta?: { last_row_id?: number } }).meta;
+        shopIdNew = Number(meta?.last_row_id ?? 0);
+        if (!shopIdNew) {
+          return apiError('Database error: could not get new shop id', 500);
+        }
+      }
+      
+      // สร้าง user ใหม่
+      const hash = await hashPassword(d.password);
       await env.DB.prepare(
         'INSERT INTO users (shop_id, email, password_hash, role) VALUES (?, ?, ?, ?)'
       )
         .bind(shopIdNew, d.email, hash, 'owner')
         .run();
-      return apiSuccess({ shopId: shopIdNew, message: 'Bootstrap complete. Login to continue.' });
+      return apiSuccess({ shopId: shopIdNew, message: 'ສ້າງຮ້ານສຳເລັດ. ກະລຸນາເຂົ້າສູ່ລະບົບ.' });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       return apiError('Bootstrap failed: ' + msg, 500);
@@ -605,8 +625,8 @@ async function handleAdmin(
   if (!auth && path !== 'bootstrap') {
     return apiError('Unauthorized', 401);
   }
-  // ใช้ shopId จาก session สำหรับ admin API (สำคัญ!)
-  const actualShopId = auth?.shopId || shopId;
+  // ใช้ shopId จาก session สำหรับ admin API (สำคัญ!) - ไม่ใช้ shopId จาก host header
+  const actualShopId = auth?.shopId;
   if (!actualShopId || actualShopId <= 0) {
     console.error('Invalid shopId:', { authShopId: auth?.shopId, hostShopId: shopId, path, url: url.pathname });
     return apiError('Invalid shop ID', 400);
@@ -616,7 +636,7 @@ async function handleAdmin(
     const row = await env.DB.prepare(
       'SELECT id, domain, name_lo, name_en, desc_lo, desc_en, avatar_key, cover_key, theme_primary, theme_secondary, wa_template FROM shops WHERE id = ?'
     )
-      .bind(shopId)
+      .bind(actualShopId)
       .first();
     if (!row) return apiError('Shop not found', 404);
     return apiSuccess(row);
@@ -630,6 +650,18 @@ async function handleAdmin(
     const d = parsed.data;
     const updates: string[] = [];
     const vals: unknown[] = [];
+    if (d.domain !== undefined) {
+      const normalizedDomain = normalizeDomain(d.domain);
+      if (normalizedDomain) {
+        // ตรวจสอบว่า domain นี้ถูกใช้โดยร้านอื่นหรือไม่
+        const existing = await env.DB.prepare('SELECT id FROM shops WHERE domain = ? AND id != ?').bind(normalizedDomain, actualShopId).first();
+        if (existing) {
+          return apiError('Domain ນີ້ຖືກໃຊ້ແລ້ວ ກະລຸນາໃຊ້ domain ອື່ນ', 400);
+        }
+        updates.push('domain = ?');
+        vals.push(normalizedDomain);
+      }
+    }
     if (d.name_lo !== undefined) { updates.push('name_lo = ?'); vals.push(d.name_lo); }
     if (d.name_en !== undefined) { updates.push('name_en = ?'); vals.push(d.name_en); }
     if (d.desc_lo !== undefined) { updates.push('desc_lo = ?'); vals.push(d.desc_lo); }

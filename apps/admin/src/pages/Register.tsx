@@ -13,7 +13,7 @@ function toHostname(value: string): string {
   }
 }
 
-export default function Bootstrap() {
+export default function Register() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
     domain: '',
@@ -21,6 +21,7 @@ export default function Bootstrap() {
     shop_name_en: '',
     email: '',
     password: '',
+    confirmPassword: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -35,46 +36,52 @@ export default function Bootstrap() {
     e.preventDefault();
     setLoading(true);
     setError('');
-    const payload = { ...form, domain: toHostname(form.domain) || form.domain };
+
+    // Validation
+    if (form.password !== form.confirmPassword) {
+      setError('ລະຫັດຜ່ານບໍ່ກົງກັນ');
+      setLoading(false);
+      return;
+    }
+
+    if (form.password.length < 8) {
+      setError('ລະຫັດຜ່ານຕ້ອງມີຢ່າງໜ້ອຍ 8 ຕົວອັກສອນ');
+      setLoading(false);
+      return;
+    }
+
+    const payload = {
+      domain: toHostname(form.domain) || form.domain,
+      shop_name_lo: form.shop_name_lo,
+      shop_name_en: form.shop_name_en,
+      email: form.email,
+      password: form.password,
+    };
+
     const res = await apiPost<{ shopId: number }>('/api/admin/bootstrap', payload);
     setLoading(false);
     if (res.ok) {
-      navigate('/login', { replace: true });
+      navigate('/login', { replace: true, state: { message: 'ສ້າງຮ້ານສຳເລັດ! ກະລຸນາເຂົ້າສູ່ລະບົບ.' } });
     } else {
       setError(res.error || 'ບໍ່ສາມາດສ້າງຮ້ານໄດ້');
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 p-4 py-8">
-      <div className="max-w-lg mx-auto">
-        <div className="mb-6">
-          <Link to="/login" className="text-sm text-slate-500 hover:text-slate-700">
-            ← กลับไปเข้าสู่ระบบ
-          </Link>
+    <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
+      <div className="w-full max-w-md space-y-6">
+        {/* หัวข้อ */}
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-slate-800">ສ້າງຮ້ານໃໝ່</h1>
+          <p className="text-slate-500 mt-1">ສະມັກສ້າງຮ້ານແລະບັນຊີຜູ້ດູແລ</p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-          <h1 className="text-xl font-bold text-slate-800 mb-1">ສ້າງຮ້ານແລະບັນຊີຜູ້ດູແລ</h1>
-          <p className="text-slate-500 text-sm mb-6">
-            ຫຼັງສ້າງແລ້ວ ຈະໃຊ້ອີເມວແລະລະຫັດຜ່ານດ້ານລຸ່ມເຂົ້າສູ່ລະບົບ
-          </p>
-
-          {/* คำแนะนำแบบขั้นตอน */}
-          <div className="bg-slate-50 rounded-lg p-4 mb-6 text-sm text-slate-700 space-y-2">
-            <p className="font-medium text-slate-800">ວິທີສ້າງຮ້ານ</p>
-            <ol className="list-decimal list-inside space-y-1">
-              <li><strong>Subdomain</strong> — ກອກ subdomain ສຳລັບຫນ້າລູກຄ້າ (ເຊັ່ນ shop1.example.com)</li>
-              <li><strong>ຊື່ຮ້ານ</strong> — ຊື່ທີ່ສະແດງບນຫນ້າຮ້ານ (ລາວ / English)</li>
-              <li><strong>ອີເມວ + ລະຫັດຜ່ານ</strong> — ໃຊ້ເຂົ້າຫຼັງບ້ານຄັ້ງຕໍ່ໄປ (ລະຫັດຢ່າງໜ້ອຍ 8 ຕົວອັກສອນ)</li>
-              <li>ກົດ <strong>ສ້າງຮ້ານ</strong> ແລ້ວໄປຫນ້າເຂົ້າສູ່ລະບົບ ເພື່ອ login ດ້ວຍບັນຊີທີ່ສ້າງໄວ້</li>
-            </ol>
-          </div>
-
+        {/* ฟอร์มสมัคร */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="domain" className="block text-sm font-medium text-slate-700 mb-1">
-                Subdomain (สำหรับหน้าร้าน)
+                Subdomain (ສຳລັບຫນ້າລູກຄ້າ)
               </label>
               <input
                 id="domain"
@@ -88,23 +95,23 @@ export default function Bootstrap() {
               />
               <div className="mt-2 space-y-1">
                 <p className="text-xs text-slate-600">
-                  <strong>ตัวอย่าง:</strong>
+                  <strong>ຕົວຢ່າງ:</strong>
                 </p>
                 <ul className="text-xs text-slate-500 list-disc list-inside space-y-0.5">
-                  <li><code>shop1.example.com</code> - ร้านที่ 1</li>
-                  <li><code>shop2.example.com</code> - ร้านที่ 2</li>
-                  <li><code>myshop.example.com</code> - ร้านของฉัน</li>
+                  <li><code>shop1.example.com</code> - ຮ້ານທີ່ 1</li>
+                  <li><code>shop2.example.com</code> - ຮ້ານທີ່ 2</li>
+                  <li><code>myshop.example.com</code> - ຮ້ານຂອງຂ້ອຍ</li>
                 </ul>
               </div>
               <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-800">
-                <strong>⚠️ สำคัญ:</strong> หลังสร้างร้านแล้ว ต้องตั้งค่า DNS ใน Cloudflare และเพิ่ม Custom Domain ใน Worker ด้วย
+                <strong>⚠️ ສຳຄັນ:</strong> ຫຼັງສ້າງຮ້ານແລ້ວ ຕ້ອງຕັ້ງຄ່າ DNS ໃນ Cloudflare ແລະເພີ່ມ Custom Domain ໃນ Worker ດ້ວຍ
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="shop_name_lo" className="block text-sm font-medium text-slate-700 mb-1">
-                  ชื่อร้าน (ลาว)
+                  ຊື່ຮ້ານ (ລາວ)
                 </label>
                 <input
                   id="shop_name_lo"
@@ -119,7 +126,7 @@ export default function Bootstrap() {
               </div>
               <div>
                 <label htmlFor="shop_name_en" className="block text-sm font-medium text-slate-700 mb-1">
-                  ชื่อร้าน (English)
+                  ຊື່ຮ້ານ (English)
                 </label>
                 <input
                   id="shop_name_en"
@@ -136,7 +143,7 @@ export default function Bootstrap() {
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">
-                อีเมลผู้ดูแล (ใช้เข้าสู่ระบบ)
+                ອີເມວຜູ້ດູແລ (ໃຊ້ເຂົ້າສູ່ລະບົບ)
               </label>
               <input
                 id="email"
@@ -152,7 +159,7 @@ export default function Bootstrap() {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1">
-                รหัสผ่าน (อย่างน้อย 8 ตัว)
+                ລະຫັດຜ່ານ (ຢ່າງໜ້ອຍ 8 ຕົວອັກສອນ)
               </label>
               <input
                 id="password"
@@ -162,6 +169,23 @@ export default function Bootstrap() {
                 minLength={8}
                 value={form.password}
                 onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+                className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                placeholder="••••••••"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-1">
+                ຢືນຢັນລະຫັດຜ່ານ
+              </label>
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                required
+                minLength={8}
+                value={form.confirmPassword}
+                onChange={(e) => setForm((f) => ({ ...f, confirmPassword: e.target.value }))}
                 className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 placeholder="••••••••"
               />
@@ -179,6 +203,12 @@ export default function Bootstrap() {
               {loading ? 'ກຳລັງສ້າງຮ້ານ...' : 'ສ້າງຮ້ານ'}
             </button>
           </form>
+
+          <div className="mt-4 text-center">
+            <Link to="/login" className="text-sm text-blue-600 hover:text-blue-700 hover:underline">
+              ມີບັນຊີແລ້ວ? ເຂົ້າສູ່ລະບົບ
+            </Link>
+          </div>
         </div>
       </div>
     </div>

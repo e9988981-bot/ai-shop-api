@@ -26,14 +26,14 @@ export default function Login() {
     if (res.ok) {
       navigate('/', { replace: true });
     } else {
-      setError(res.error || 'เข้าสู่ระบบไม่สำเร็จ');
+      setError(res.error || 'ເຂົ້າສູ່ລະບົບບໍ່ສຳເລັດ');
     }
   };
 
   if (checking) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-100">
-        <div className="text-slate-500">กำลังโหลด...</div>
+        <div className="text-slate-500">ກຳລັງໂຫຼດ...</div>
       </div>
     );
   }
@@ -43,31 +43,17 @@ export default function Login() {
       <div className="w-full max-w-md space-y-6">
         {/* หัวข้อ */}
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-slate-800">หลังบ้าน ai-shop</h1>
-          <p className="text-slate-500 mt-1">เข้าสู่ระบบเพื่อจัดการร้าน สินค้า และออเดอร์</p>
-        </div>
-
-        {/* บล็อก: ครั้งแรก สร้าง user */}
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-          <h2 className="font-semibold text-amber-900 mb-1">ครั้งแรกใช้ระบบ?</h2>
-          <p className="text-sm text-amber-800 mb-3">
-            สร้างร้านและบัญชีผู้ดูแลได้ครั้งเดียว เมื่อยังไม่มี user ในระบบ
-          </p>
-          <Link
-            to="/bootstrap"
-            className="inline-block w-full py-2.5 text-center bg-amber-500 text-white font-medium rounded-lg hover:bg-amber-600 transition"
-          >
-            สร้างร้านและบัญชีแรก
-          </Link>
+          <h1 className="text-2xl font-bold text-slate-800">ຫຼັງບ້ານ ai-shop</h1>
+          <p className="text-slate-500 mt-1">ເຂົ້າສູ່ລະບົບເພື່ອຈັດການຮ້ານ ສິນຄ້າ ແລະອໍເດີ</p>
         </div>
 
         {/* ฟอร์มเข้าสู่ระบบ */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <h2 className="font-semibold text-slate-800 mb-4">เข้าสู่ระบบ</h2>
+          <h2 className="font-semibold text-slate-800 mb-4">ເຂົ້າສູ່ລະບົບ</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">
-                อีเมล
+                ອີເມວ
               </label>
               <input
                 id="email"
@@ -81,7 +67,7 @@ export default function Login() {
             </div>
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1">
-                รหัสผ่าน
+                ລະຫັດຜ່ານ
               </label>
               <input
                 id="password"
@@ -101,9 +87,15 @@ export default function Login() {
               disabled={loading}
               className="w-full py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition"
             >
-              {loading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
+              {loading ? 'ກຳລັງເຂົ້າສູ່ລະບົບ...' : 'ເຂົ້າສູ່ລະບົບ'}
             </button>
           </form>
+
+          <div className="mt-4 text-center">
+            <Link to="/register" className="text-sm text-blue-600 hover:text-blue-700 hover:underline">
+              ບໍ່ມີບັນຊີ? ສ້າງຮ້ານໃໝ່
+            </Link>
+          </div>
         </div>
       </div>
     </div>
