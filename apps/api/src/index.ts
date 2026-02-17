@@ -900,7 +900,13 @@ async function handleAdmin(
     )
       .bind(shopId, productId, r2_key, maxSort?.next ?? 0)
       .run();
-    const row = await env.DB.prepare('SELECT * FROM product_images WHERE id = ?').bind(result.meta.last_row_id).first();
+    const imgId = result.meta.last_row_id;
+    // ถ้ายังไม่มี cover_image_id ให้ set รูปแรกเป็น cover อัตโนมัติ
+    const product = await env.DB.prepare('SELECT cover_image_id FROM products WHERE id = ? AND shop_id = ?').bind(productId, shopId).first<{ cover_image_id: number | null }>();
+    if (!product?.cover_image_id) {
+      await env.DB.prepare('UPDATE products SET cover_image_id = ? WHERE id = ? AND shop_id = ?').bind(imgId, productId, shopId).run();
+    }
+    const row = await env.DB.prepare('SELECT * FROM product_images WHERE id = ?').bind(imgId).first();
     return apiSuccess(row);
   }
 

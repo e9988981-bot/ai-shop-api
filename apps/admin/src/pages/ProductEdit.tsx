@@ -123,7 +123,13 @@ export default function ProductEdit() {
     const addRes = await apiPost<ProductImage>(`/api/admin/products/${id}/images`, { r2_key: r2Key });
     if (addRes.ok && addRes.data && product) {
       const images = [...(product.images || []), addRes.data];
-      setProduct({ ...product, images });
+      // ถ้ายังไม่มี cover_image_id ให้ set รูปแรกเป็น cover อัตโนมัติ
+      const newCoverImageId = product.cover_image_id || addRes.data.id;
+      setProduct({ ...product, images, cover_image_id: newCoverImageId });
+      // อัปเดต cover_image_id ในฐานข้อมูลถ้ายังไม่มี
+      if (!product.cover_image_id) {
+        await apiPut(`/api/admin/products/${id}`, { cover_image_id: addRes.data.id });
+      }
     }
     setUploading(false);
   };

@@ -21,16 +21,27 @@ export default function Products() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
+  const [statusFilter, setStatusFilter] = useState<string>('');
 
   useEffect(() => {
-    apiGet<{ items: Product[]; total: number }>('/api/admin/products?page=1&limit=100').then((res) => {
+    load();
+  }, [statusFilter]);
+
+  const load = () => {
+    const params = new URLSearchParams({ page: '1', limit: '100' });
+    if (statusFilter) params.append('status', statusFilter);
+    apiGet<{ items: Product[]; total: number }>(`/api/admin/products?${params}`).then((res) => {
       if (res.ok && res.data) {
         setProducts(res.data.items || []);
         setTotal(res.data.total ?? 0);
+      } else {
+        console.error('Failed to load products:', res.error);
+        setProducts([]);
+        setTotal(0);
       }
       setLoading(false);
     });
-  }, []);
+  };
 
   if (loading) {
     return (
@@ -43,11 +54,30 @@ export default function Products() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-slate-800">สินค้า</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800">สินค้า</h1>
+          {total > 0 && (
+            <p className="text-slate-500 text-sm mt-1">ทั้งหมด {total} รายการ</p>
+          )}
+        </div>
         <Link to="/products/new" className="btn-primary">
           เพิ่มสินค้า
         </Link>
       </div>
+      
+      {/* Filter */}
+      <div className="mb-4 flex gap-3">
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="input-admin w-48"
+        >
+          <option value="">ทุกสถานะ</option>
+          <option value="draft">แบบร่าง</option>
+          <option value="published">เผยแพร่</option>
+        </select>
+      </div>
+      
       <p className="text-slate-500 mb-4">คลิกที่สินค้าเพื่อแก้ไขข้อมูลและจัดการรูปภาพ</p>
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
         <table className="w-full">
@@ -70,25 +100,40 @@ export default function Products() {
               </tr>
             ) : (
               products.map((p) => (
-                <tr key={p.id} className="border-b border-slate-100 hover:bg-slate-50">
-                  <td className="py-2 px-3">
+                <tr key={p.id} className="border-b border-slate-100 hover:bg-slate-50 transition">
+                  <td className="py-3 px-4">
                     {p.cover_image ? (
-                      <img src={imgUrl(p.cover_image)} alt="" className="w-10 h-10 object-cover rounded" />
+                      <img src={imgUrl(p.cover_image)} alt="" className="w-12 h-12 object-cover rounded border border-slate-200" />
                     ) : (
-                      <div className="w-10 h-10 bg-slate-200 rounded flex items-center justify-center text-slate-400 text-xs">ไม่มี</div>
+                      <div className="w-12 h-12 bg-slate-200 rounded flex items-center justify-center text-slate-400 text-xs border border-slate-300">
+                        ไม่มีรูป
+                      </div>
                     )}
                   </td>
-                  <td className="py-2 px-3">{p.name_lo} / {p.name_en}</td>
-                  <td className="py-2 px-3 text-slate-600">{p.slug}</td>
-                  <td className="py-2 px-3">{p.price}</td>
-                  <td className="py-2 px-3">
-                    <span className={p.status === 'published' ? 'text-green-600' : 'text-slate-500'}>
+                  <td className="py-3 px-4">
+                    <div className="font-medium text-slate-800">{p.name_lo || p.name_en}</div>
+                    {(p.name_lo && p.name_en) && (
+                      <div className="text-xs text-slate-500 mt-0.5">{p.name_en}</div>
+                    )}
+                  </td>
+                  <td className="py-3 px-4">
+                    <code className="text-xs text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded">{p.slug}</code>
+                  </td>
+                  <td className="py-3 px-4">
+                    <span className="font-semibold text-slate-800">৳{p.price.toLocaleString()}</span>
+                  </td>
+                  <td className="py-3 px-4">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      p.status === 'published' 
+                        ? 'bg-green-100 text-green-700' 
+                        : 'bg-slate-100 text-slate-600'
+                    }`}>
                       {p.status === 'published' ? 'เผยแพร่' : 'แบบร่าง'}
                     </span>
                   </td>
-                  <td className="py-2 px-3">
-                    <Link to={`/products/${p.id}`} className="text-blue-600 hover:underline text-sm">
-                      แก้ไข
+                  <td className="py-3 px-4">
+                    <Link to={`/products/${p.id}`} className="text-blue-600 hover:text-blue-700 hover:underline text-sm font-medium">
+                      แก้ไข →
                     </Link>
                   </td>
                 </tr>
@@ -97,9 +142,6 @@ export default function Products() {
           </tbody>
         </table>
       </div>
-      {total > 0 && (
-        <p className="text-slate-500 text-sm mt-2">ทั้งหมด {total} รายการ</p>
-      )}
     </div>
   );
 }
