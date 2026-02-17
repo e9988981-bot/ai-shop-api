@@ -48,8 +48,11 @@ Production-ready multi-tenant system where **each custom domain = one shop**. Bu
 4. คลิก **Create**
 5. เปิด database → แท็บ **Console**
 6. Copy เนื้อหาจาก `schema/schema.sql` วางลงใน Console
-7. คลิก **Execute** เพื่อสร้างตาราง
+7. คลิก **Execute** เพื่อสร้างตาราง (shops, users, wa_numbers, products ฯลฯ) — **จำเป็นต้องทำก่อน Bootstrap ครั้งแรก**
 8. Copy **Database ID** (ใช้สำหรับ Worker ในขั้นตอนถัดไป)
+
+**ถ้า Bootstrap แสดง `D1_ERROR: no such table: users`:** แปลว่ายังไม่ได้รัน schema — ทำ Step 1 ข้อ 5–7 ใน D1 Console หรือจากเครื่อง (ต้องติดตั้ง [Wrangler](https://developers.cloudflare.com/workers/wrangler/install-api/) และ login):  
+`npm run db:schema` หรือ `npx wrangler d1 execute ai-shop-db --remote --file=./schema/schema.sql`
 
 ---
 

@@ -1,7 +1,4 @@
--- ai-shop D1 Schema for Cloudflare D1
--- Run this in Cloudflare D1 Console (Dashboard > Workers & Pages > D1 > your-db > Console)
 
--- Shops: one per custom domain
 CREATE TABLE IF NOT EXISTS shops (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   domain TEXT NOT NULL UNIQUE,
@@ -17,9 +14,8 @@ CREATE TABLE IF NOT EXISTS shops (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE INDEX idx_shops_domain ON shops(domain);
+CREATE INDEX IF NOT EXISTS idx_shops_domain ON shops(domain);
 
--- Users: shop owners/admins
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   shop_id INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
@@ -31,9 +27,8 @@ CREATE TABLE IF NOT EXISTS users (
   UNIQUE(shop_id, email)
 );
 
-CREATE INDEX idx_users_shop ON users(shop_id);
+CREATE INDEX IF NOT EXISTS idx_users_shop ON users(shop_id);
 
--- WhatsApp numbers per shop
 CREATE TABLE IF NOT EXISTS wa_numbers (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   shop_id INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
@@ -44,9 +39,8 @@ CREATE TABLE IF NOT EXISTS wa_numbers (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE INDEX idx_wa_numbers_shop ON wa_numbers(shop_id);
+CREATE INDEX IF NOT EXISTS idx_wa_numbers_shop ON wa_numbers(shop_id);
 
--- Categories (optional, per shop)
 CREATE TABLE IF NOT EXISTS categories (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   shop_id INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
@@ -56,9 +50,8 @@ CREATE TABLE IF NOT EXISTS categories (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE INDEX idx_categories_shop ON categories(shop_id);
+CREATE INDEX IF NOT EXISTS idx_categories_shop ON categories(shop_id);
 
--- Products
 CREATE TABLE IF NOT EXISTS products (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   shop_id INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
@@ -76,11 +69,10 @@ CREATE TABLE IF NOT EXISTS products (
   UNIQUE(shop_id, slug)
 );
 
-CREATE INDEX idx_products_shop ON products(shop_id);
-CREATE INDEX idx_products_status ON products(shop_id, status);
-CREATE INDEX idx_products_category ON products(shop_id, category_id);
+CREATE INDEX IF NOT EXISTS idx_products_shop ON products(shop_id);
+CREATE INDEX IF NOT EXISTS idx_products_status ON products(shop_id, status);
+CREATE INDEX IF NOT EXISTS idx_products_category ON products(shop_id, category_id);
 
--- Product images (R2 keys)
 CREATE TABLE IF NOT EXISTS product_images (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   shop_id INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
@@ -90,10 +82,9 @@ CREATE TABLE IF NOT EXISTS product_images (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE INDEX idx_product_images_product ON product_images(product_id);
-CREATE INDEX idx_product_images_shop ON product_images(shop_id);
+CREATE INDEX IF NOT EXISTS idx_product_images_product ON product_images(product_id);
+CREATE INDEX IF NOT EXISTS idx_product_images_shop ON product_images(shop_id);
 
--- Option groups (e.g. Size, Color)
 CREATE TABLE IF NOT EXISTS option_groups (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   shop_id INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
@@ -105,9 +96,8 @@ CREATE TABLE IF NOT EXISTS option_groups (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE INDEX idx_option_groups_product ON option_groups(product_id);
+CREATE INDEX IF NOT EXISTS idx_option_groups_product ON option_groups(product_id);
 
--- Option values (e.g. S, M, L)
 CREATE TABLE IF NOT EXISTS option_values (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   shop_id INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
@@ -118,9 +108,8 @@ CREATE TABLE IF NOT EXISTS option_values (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE INDEX idx_option_values_group ON option_values(group_id);
+CREATE INDEX IF NOT EXISTS idx_option_values_group ON option_values(group_id);
 
--- Orders
 CREATE TABLE IF NOT EXISTS orders (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   shop_id INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
@@ -137,7 +126,7 @@ CREATE TABLE IF NOT EXISTS orders (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE INDEX idx_orders_shop ON orders(shop_id);
-CREATE INDEX idx_orders_status ON orders(shop_id, status);
-CREATE INDEX idx_orders_created ON orders(shop_id, created_at);
-CREATE INDEX idx_orders_customer_phone ON orders(shop_id, customer_phone);
+CREATE INDEX IF NOT EXISTS idx_orders_shop ON orders(shop_id);
+CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(shop_id, status);
+CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(shop_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_orders_customer_phone ON orders(shop_id, customer_phone);
