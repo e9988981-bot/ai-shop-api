@@ -55,7 +55,15 @@ export default function BootstrapPage() {
     if (res.ok) {
       router.replace('/admin/login');
     } else {
-      setError(res.error || 'Bootstrap failed');
+      const status = res.status;
+      const msg = res.error || 'Bootstrap failed';
+      if (status === 404 || status === 405) {
+        setError(
+          'ไม่พบ API (404/405). ถ้าเว็บอยู่ Cloudflare Pages แยกจาก Worker ให้ตั้งค่า Environment variable ใน Cloudflare Pages: ชื่อ NEXT_PUBLIC_API_URL ค่าเป็น URL ของ Worker (เช่น https://ai-shop-api.xxx.workers.dev) แล้ว Redeploy'
+        );
+      } else {
+        setError(msg);
+      }
     }
   };
 
@@ -68,14 +76,17 @@ export default function BootstrapPage() {
         </p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Domain</label>
+            <label htmlFor="bootstrap-domain" className="block text-sm font-medium mb-1">Domain</label>
             <input
+              id="bootstrap-domain"
+              name="domain"
               type="text"
               required
               value={form.domain}
               onChange={(e) => setForm((f) => ({ ...f, domain: e.target.value }))}
               placeholder="e.g. ai-shop-api.xxx.workers.dev or yourdomain.com"
               className="w-full px-3 py-2 border rounded-lg"
+              autoComplete="url"
             />
             <p className="text-xs text-gray-500 mt-1">
               ใช้โดเมนที่เรียก API (ถ้าเว็บอยู่ Pages แยกจาก Worker ให้ใส่โดเมนของ Worker เช่น xxx.workers.dev)
@@ -83,45 +94,57 @@ export default function BootstrapPage() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Shop Name (Lao)</label>
+              <label htmlFor="bootstrap-shop_name_lo" className="block text-sm font-medium mb-1">Shop Name (Lao)</label>
               <input
+                id="bootstrap-shop_name_lo"
+                name="shop_name_lo"
                 type="text"
                 required
                 value={form.shop_name_lo}
                 onChange={(e) => setForm((f) => ({ ...f, shop_name_lo: e.target.value }))}
                 className="w-full px-3 py-2 border rounded-lg"
+                autoComplete="organization"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Shop Name (English)</label>
+              <label htmlFor="bootstrap-shop_name_en" className="block text-sm font-medium mb-1">Shop Name (English)</label>
               <input
+                id="bootstrap-shop_name_en"
+                name="shop_name_en"
                 type="text"
                 required
                 value={form.shop_name_en}
                 onChange={(e) => setForm((f) => ({ ...f, shop_name_en: e.target.value }))}
                 className="w-full px-3 py-2 border rounded-lg"
+                autoComplete="organization"
               />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Owner Email</label>
+            <label htmlFor="bootstrap-email" className="block text-sm font-medium mb-1">Owner Email</label>
             <input
+              id="bootstrap-email"
+              name="email"
               type="email"
               required
               value={form.email}
               onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
               className="w-full px-3 py-2 border rounded-lg"
+              autoComplete="email"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Password (min 8 chars)</label>
+            <label htmlFor="bootstrap-password" className="block text-sm font-medium mb-1">Password (min 8 chars)</label>
             <input
+              id="bootstrap-password"
+              name="password"
               type="password"
               required
               minLength={8}
               value={form.password}
               onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
               className="w-full px-3 py-2 border rounded-lg"
+              autoComplete="new-password"
             />
           </div>
           {error && <p className="text-red-600 text-sm">{error}</p>}

@@ -129,9 +129,10 @@ Production-ready multi-tenant system where **each custom domain = one shop**. Bu
 
    **สำคัญ:** ต้องใส่ `apps/web/out` ไม่ใช่ `out` — เพราะ build รันจาก root แต่ Next.js สร้างโฟลเดอร์ `out` ภายใน `apps/web/` เท่านั้น
 
-5. เพิ่ม **Environment variable** (ถ้าต้องการ):
+5. เพิ่ม **Environment variable** — **จำเป็นเมื่อเว็บอยู่ Pages และ API อยู่ Worker (คนละโดเมน)**:
    - Name: `NEXT_PUBLIC_API_URL`
-   - Value: URL ของ API (เช่น `https://ai-shop-api.<subdomain>.workers.dev`) หรือเว้นว่างถ้าใช้ same domain
+   - Value: URL เต็มของ Worker (เช่น `https://ai-shop-api.e9988981.workers.dev`) ไม่ใส่ `https` ต่อท้าย
+   - ถ้าไม่ตั้งค่า หน้าเว็บจะเรียก API ไปที่โดเมนของตัวเอง (Pages) แล้วได้ 404/405
 
 6. คลิก **Save and Deploy**
 

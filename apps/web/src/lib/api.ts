@@ -9,11 +9,11 @@ export interface ApiResponse<T = unknown> {
 }
 
 function getBase(): string {
-  if (typeof window !== 'undefined') return '';
+  if (typeof window === 'undefined') return process.env.NEXT_PUBLIC_API_URL || '';
   return process.env.NEXT_PUBLIC_API_URL || '';
 }
 
-export async function api<T>(path: string, init?: RequestInit): Promise<ApiResponse<T>> {
+export async function api<T>(path: string, init?: RequestInit): Promise<ApiResponse<T> & { status?: number }> {
   const base = getBase();
   const url = `${base}${path.startsWith('/') ? path : '/' + path}`;
   const res = await fetch(url, {
@@ -26,9 +26,9 @@ export async function api<T>(path: string, init?: RequestInit): Promise<ApiRespo
   });
   const json = await res.json().catch(() => ({}));
   if (!res.ok) {
-    return { ok: false, error: json.error || res.statusText };
+    return { ok: false, error: json.error || res.statusText, status: res.status };
   }
-  return json as ApiResponse<T>;
+  return { ...(json as ApiResponse<T>), status: res.status };
 }
 
 export async function apiGet<T>(path: string): Promise<ApiResponse<T>> {
