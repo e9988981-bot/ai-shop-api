@@ -175,9 +175,11 @@ export function ShopPage() {
                   <h3 className="font-semibold text-slate-800 line-clamp-2 group-hover:text-blue-600 transition-colors">
                     {getBilingual(locale, { lo: p.name_lo, en: p.name_en })}
                   </h3>
-                  <p className="text-lg font-bold mt-2" style={{ color: shop?.theme_primary || '#2563eb' }}>
-                    ₭{p.price.toLocaleString()}
-                  </p>
+                  {p.price > 0 && (
+                    <p className="text-lg font-bold mt-2 text-slate-900" style={{ color: shop?.theme_primary || '#2563eb' }}>
+                      ₭{p.price.toLocaleString()}
+                    </p>
+                  )}
                 </div>
               </Link>
             ))}

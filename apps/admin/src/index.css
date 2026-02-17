@@ -2,6 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import Lao fonts */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@300;400;500;600;700&display=swap');
+
+/* Apply Lao font globally */
+body {
+  font-family: 'Noto Sans Lao', 'Phetsarath OT', 'Saysettha OT', 'Saysettha MX', sans-serif;
+}
+
+/* Ensure Lao text uses proper font */
+.lao-text,
+[lang="lo"],
+:lang(lo) {
+  font-family: 'Noto Sans Lao', 'Phetsarath OT', 'Saysettha OT', 'Saysettha MX', sans-serif;
+  font-feature-settings: "liga" on, "calt" on;
+  text-rendering: optimizeLegibility;
+}
+
 @layer components {
   .input-admin {
     @apply w-full border border-slate-300 rounded-lg px-3 py-2 text-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition;

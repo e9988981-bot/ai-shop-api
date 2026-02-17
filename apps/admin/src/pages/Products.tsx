@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { apiGet } from '@/lib/api';
+import { apiGet, apiDelete } from '@/lib/api';
 
 function imgUrl(key: string | null): string {
   if (!key) return '';
@@ -23,6 +23,7 @@ export default function Products() {
   const [total, setTotal] = useState(0);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [error, setError] = useState<string>('');
+  const [deleting, setDeleting] = useState<number | null>(null);
 
   useEffect(() => {
     load();
@@ -52,6 +53,25 @@ export default function Products() {
       setError('ເກີດຂໍ້ຜິດພາດໃນການໂຫຼດຂໍ້ມູນ');
       setLoading(false);
     });
+  };
+
+  const handleDelete = async (productId: number, productName: string) => {
+    if (!confirm(`ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການລຶບສິນຄ້າ "${productName}"? ການກະທຳນີ້ບໍ່ສາມາດຍົກເລີກໄດ້.`)) {
+      return;
+    }
+    setDeleting(productId);
+    try {
+      const res = await apiDelete(`/api/admin/products/${productId}`);
+      if (res.ok) {
+        load(); // Reload the list
+      } else {
+        alert('ບໍ່ສາມາດລຶບສິນຄ້າໄດ້: ' + (res.error || 'ເກີດຂໍ້ຜິດພາດ'));
+      }
+    } catch (e) {
+      alert('ເກີດຂໍ້ຜິດພາດ: ' + (e instanceof Error ? e.message : String(e)));
+    } finally {
+      setDeleting(null);
+    }
   };
 
   if (loading) {
@@ -149,6 +169,26 @@ export default function Products() {
                       {p.status === 'published' ? 'ເຜີຍແຜ່' : 'ຮ່າງ'}
                     </span>
                   </div>
+                  <div className="flex gap-2 mt-2">
+                    <Link
+                      to={`/products/${p.id}`}
+                      className="text-xs text-blue-600 hover:text-blue-700 hover:underline font-medium"
+                    >
+                      ແກ້ໄຂ
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleDelete(p.id, p.name_lo || p.name_en);
+                      }}
+                      disabled={deleting === p.id}
+                      className="text-xs text-red-600 hover:text-red-700 hover:underline font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {deleting === p.id ? 'ກຳລັງລຶບ...' : 'ລຶບ'}
+                    </button>
+                  </div>
                 </div>
               </div>
             </Link>
@@ -212,9 +252,20 @@ export default function Products() {
                       </span>
                     </td>
                     <td className="py-3 px-4">
-                      <Link to={`/products/${p.id}`} className="text-blue-600 hover:text-blue-700 hover:underline text-sm font-medium">
-                        ແກ້ໄຂ →
-                      </Link>
+                      <div className="flex items-center gap-2">
+                        <Link to={`/products/${p.id}`} className="text-blue-600 hover:text-blue-700 hover:underline text-sm font-medium">
+                          ແກ້ໄຂ →
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(p.id, p.name_lo || p.name_en)}
+                          disabled={deleting === p.id}
+                          className="text-red-600 hover:text-red-700 hover:underline text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="ລຶບສິນຄ້າ"
+                        >
+                          {deleting === p.id ? 'ກຳລັງລຶບ...' : 'ລຶບ'}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
