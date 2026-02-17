@@ -10,7 +10,8 @@
     "build": "npm run build --workspaces --if-present",
     "build:api": "node apps/api/build.mjs",
     "build:shared": "cd packages/shared && bun run build",
-    "build:web": "bun run build:shared && cd apps/web && bun run build"
+    "build:web": "bun run build:shared && cd apps/web && bun run build",
+    "build:admin": "bun run build:shared && cd apps/admin && npm run build"
   },
   "engines": {
     "node": ">=18"

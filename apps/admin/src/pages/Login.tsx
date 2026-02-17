@@ -1,15 +1,21 @@
-'use client';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { apiGet, apiPost } from '@/lib/api';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { apiPost, apiGet } from '@/lib/api';
-
-export default function AdminLogin() {
-  const router = useRouter();
+export default function Login() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    apiGet<{ email: string }>('/api/auth/me').then((res) => {
+      if (res.ok && res.data) navigate('/', { replace: true });
+      setChecking(false);
+    });
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,11 +24,13 @@ export default function AdminLogin() {
     const res = await apiPost<{ userId: number }>('/api/auth/login', { email, password });
     setLoading(false);
     if (res.ok) {
-      router.replace('/admin/');
+      navigate('/', { replace: true });
     } else {
       setError(res.error || 'Login failed');
     }
   };
+
+  if (checking) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -30,8 +38,9 @@ export default function AdminLogin() {
         <h1 className="text-xl font-bold mb-4">Admin Login</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
+            <label htmlFor="email" className="block text-sm font-medium mb-1">Email</label>
             <input
+              id="email"
               type="email"
               required
               value={email}
@@ -40,8 +49,9 @@ export default function AdminLogin() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Password</label>
+            <label htmlFor="password" className="block text-sm font-medium mb-1">Password</label>
             <input
+              id="password"
               type="password"
               required
               value={password}
@@ -58,6 +68,9 @@ export default function AdminLogin() {
             {loading ? '...' : 'Login'}
           </button>
         </form>
+        <p className="mt-4 text-sm text-gray-500 text-center">
+          No account? <Link to="/bootstrap" className="text-blue-600">Create first shop</Link>
+        </p>
       </div>
     </div>
   );

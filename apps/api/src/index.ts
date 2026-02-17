@@ -8,6 +8,8 @@ export interface Env {
   DB: D1Database;
   BUCKET: R2Bucket;
   SESSION_SECRET?: string;
+  /** URL of the admin frontend (e.g. https://ai-shop-admin.pages.dev) for proxy at /admin */
+  ADMIN_ORIGIN?: string;
 }
 
 const UPLOAD_TOKEN_MAX_AGE = 60 * 5; // 5 minutes
@@ -186,6 +188,31 @@ export default {
     const url = new URL(request.url);
     const host = request.headers.get('Host') || '';
 
+    // Proxy /admin and /assets to admin frontend (หลังบ้านที่ Worker)
+    if (url.pathname.startsWith('/admin') || url.pathname.startsWith('/assets')) {
+      const adminOrigin = (env.ADMIN_ORIGIN || '').replace(/\/$/, '');
+      if (!adminOrigin) {
+        return json({ ok: false, error: 'Admin not configured. Set ADMIN_ORIGIN in Worker settings.' }, { status: 503 });
+      }
+      const path = url.pathname;
+      const backendPath =
+        path.startsWith('/admin') ? (path === '/admin' || path === '/admin/' ? '/' : path.slice(6)) : path;
+      const backendUrl = adminOrigin + backendPath + url.search;
+      const proxyRequest = new Request(backendUrl, {
+        method: request.method,
+        headers: new Headers({
+          Accept: request.headers.get('Accept') || '*/*',
+          'Accept-Language': request.headers.get('Accept-Language') || '',
+        }),
+        body: request.method !== 'GET' && request.method !== 'HEAD' ? request.body : undefined,
+      });
+      const proxyRes = await fetch(proxyRequest);
+      const resHeaders = new Headers(proxyRes.headers);
+      if (!resHeaders.has('Content-Type'))
+        resHeaders.set('Content-Type', path.endsWith('.js') ? 'application/javascript' : 'text/html; charset=utf-8');
+      return new Response(proxyRes.body, { status: proxyRes.status, statusText: proxyRes.statusText, headers: resHeaders });
+    }
+
     // CORS for same-origin; allow API subdomain/domain
     const corsHeaders: Record<string, string> = {
       'Access-Control-Allow-Credentials': 'true',
@@ -204,7 +231,17 @@ export default {
     }
 
     const shop = await resolveShop(env.DB, host);
-    if (!shop && !isBootstrap && (url.pathname.startsWith('/api/public') || url.pathname.startsWith('/api/admin') || url.pathname.startsWith('/api/auth'))) {
+    const isAuthMeOrLogout =
+      url.pathname === '/api/auth/me' ||
+      url.pathname === '/api/auth/me/' ||
+      url.pathname === '/api/auth/logout' ||
+      url.pathname === '/api/auth/logout/';
+    if (
+      !shop &&
+      !isBootstrap &&
+      !isAuthMeOrLogout &&
+      (url.pathname.startsWith('/api/public') || url.pathname.startsWith('/api/admin') || url.pathname.startsWith('/api/auth'))
+    ) {
       return json({ ok: false, error: 'Shop not found' }, { status: 404, headers: corsHeaders });
     }
 
@@ -214,7 +251,7 @@ export default {
       if (url.pathname.startsWith('/api/public/')) {
         res = await handlePublic(request, env, url, shop!.id, corsHeaders);
       } else if (url.pathname.startsWith('/api/auth/')) {
-        res = await handleAuth(request, env, url, shop!.id, corsHeaders);
+        res = await handleAuth(request, env, url, shop?.id ?? 0, corsHeaders);
       } else if (url.pathname.startsWith('/api/admin/')) {
         res = await handleAdmin(request, env, url, shop?.id ?? 0, corsHeaders);
       } else {
@@ -503,35 +540,44 @@ async function handleAdmin(
   const path = url.pathname.replace(/^\/api\/admin\/?/, '');
 
   if (path === 'bootstrap' && request.method === 'POST') {
-    const countResult = await env.DB.prepare('SELECT COUNT(*) as c FROM users').first<{ c: number }>();
-    const count = countResult?.c ?? 0;
-    if (count > 0) {
-      return apiError('Bootstrap is disabled. Users already exist.', 403);
+    try {
+      const countResult = await env.DB.prepare('SELECT COUNT(*) as c FROM users').first<{ c: number }>();
+      const count = countResult?.c ?? 0;
+      if (count > 0) {
+        return apiError('Bootstrap is disabled. Users already exist.', 403);
+      }
+      const body = await request.json().catch(() => ({}));
+      const { bootstrapSchema } = await import('@ai-shop/shared');
+      const parsed = bootstrapSchema.safeParse(body);
+      if (!parsed.success) {
+        return apiError(parsed.error.errors.map((e) => e.message).join(', '), 400);
+      }
+      const d = parsed.data;
+      const domain = normalizeDomain(d.domain);
+      if (!domain) return apiError('Invalid domain', 400);
+      const existing = await env.DB.prepare('SELECT id FROM shops WHERE domain = ?').bind(domain).first();
+      if (existing) return apiError('Domain already exists', 400);
+      const hash = await hashPassword(d.password);
+      const result = await env.DB.prepare(
+        'INSERT INTO shops (domain, name_lo, name_en, desc_lo, desc_en) VALUES (?, ?, ?, ?, ?)'
+      )
+        .bind(domain, d.shop_name_lo, d.shop_name_en, null, null)
+        .run();
+      const meta = (result as { meta?: { last_row_id?: number } }).meta;
+      const shopIdNew = Number(meta?.last_row_id ?? 0);
+      if (!shopIdNew) {
+        return apiError('Database error: could not get new shop id', 500);
+      }
+      await env.DB.prepare(
+        'INSERT INTO users (shop_id, email, password_hash, role) VALUES (?, ?, ?, ?)'
+      )
+        .bind(shopIdNew, d.email, hash, 'owner')
+        .run();
+      return apiSuccess({ shopId: shopIdNew, message: 'Bootstrap complete. Login to continue.' });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      return apiError('Bootstrap failed: ' + msg, 500);
     }
-    const body = await request.json().catch(() => ({}));
-    const { bootstrapSchema } = await import('@ai-shop/shared');
-    const parsed = bootstrapSchema.safeParse(body);
-    if (!parsed.success) {
-      return apiError(parsed.error.errors.map((e) => e.message).join(', '), 400);
-    }
-    const d = parsed.data;
-    const domain = normalizeDomain(d.domain);
-    if (!domain) return apiError('Invalid domain', 400);
-    const existing = await env.DB.prepare('SELECT id FROM shops WHERE domain = ?').bind(domain).first();
-    if (existing) return apiError('Domain already exists', 400);
-    const hash = await hashPassword(d.password);
-    const result = await env.DB.prepare(
-      'INSERT INTO shops (domain, name_lo, name_en, desc_lo, desc_en) VALUES (?, ?, ?, ?, ?)'
-    )
-      .bind(domain, d.shop_name_lo, d.shop_name_en, null, null)
-      .run();
-    const shopIdNew = result.meta.last_row_id;
-    await env.DB.prepare(
-      'INSERT INTO users (shop_id, email, password_hash, role) VALUES (?, ?, ?, ?)'
-    )
-      .bind(shopIdNew, d.email, hash, 'owner')
-      .run();
-    return apiSuccess({ shopId: shopIdNew, message: 'Bootstrap complete. Login to continue.' });
   }
 
   const auth = await requireAuth(request, env, shopId);

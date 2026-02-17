@@ -122,12 +122,12 @@ export function ProductDetailPage({ slug }: { slug: string }) {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="flex justify-end items-center gap-2 p-4">
-        <Link
-          href="/admin/login"
+        <a
+          href={process.env.NEXT_PUBLIC_ADMIN_URL ? `${process.env.NEXT_PUBLIC_ADMIN_URL.replace(/\/$/, '')}/admin` : '/admin'}
           className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900"
         >
           {locale === 'lo' ? 'ເຂົ້າສູ່ລະບົບ' : 'Admin'}
-        </Link>
+        </a>
         <LocaleToggle />
       </div>
       <main className="max-w-2xl mx-auto p-4">
