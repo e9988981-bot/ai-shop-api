@@ -2,6 +2,8 @@
 
 Production-ready multi-tenant system where **each custom domain = one shop**. Built for Cloudflare (Pages + Workers + D1 + R2), deployed via **GitHub + Cloudflare Dashboard only** (no local Node.js, no wrangler CLI).
 
+**► หลัง deploy แล้วไม่รู้จะใช้ยังไง:** อ่าน **[คู่มือการใช้งาน](docs/คู่มือการใช้งาน.md)** (สร้างร้านครั้งแรก → Login → ตั้งค่าร้าน/สินค้า/WhatsApp → รับออเดอร์)
+
 ## Architecture
 
 | Component | Technology |
