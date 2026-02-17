@@ -3,8 +3,7 @@ import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import { apiGet, apiPost } from '@/lib/api';
 
 const nav = [
-  { href: '/', label: 'ແຜງຄວບຄຸມ', exact: true },
-  { href: '/shop', label: 'ຕັ້ງຄ່າຂໍ້ມູນຮ້ານ', exact: true },
+  { href: '/', label: 'ຕັ້ງຄ່າຂໍ້ມູນຮ້ານ', exact: true },
   { href: '/products', label: 'ສິນຄ້າ', exact: false },
   { href: '/orders', label: 'ອໍເດີ', exact: true },
   { href: '/categories', label: 'ຫມວດຫມູ່', exact: true },
@@ -53,14 +52,15 @@ export default function AdminLayout() {
         type="button"
         onClick={() => setSidebarOpen(!sidebarOpen)}
         className="md:hidden fixed top-4 left-4 z-50 p-2 bg-slate-800 text-white rounded-lg shadow-lg"
+        aria-label="ເປີດເມນູ"
       >
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </button>
 
-      {/* Sidebar */}
-      <aside className={`fixed md:static inset-y-0 left-0 w-60 bg-slate-800 text-white flex flex-col shrink-0 shadow-lg z-40 transform transition-transform duration-200 ${
+      {/* Sidebar Drawer */}
+      <aside className={`fixed md:static inset-y-0 left-0 w-64 bg-slate-800 text-white flex flex-col shrink-0 shadow-xl z-40 transform transition-transform duration-300 ease-in-out ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
       }`}>
         <div className="p-5 border-b border-slate-700 flex items-center justify-between">
@@ -69,6 +69,7 @@ export default function AdminLayout() {
             type="button"
             onClick={() => setSidebarOpen(false)}
             className="md:hidden text-slate-400 hover:text-white"
+            aria-label="ປິດເມນູ"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

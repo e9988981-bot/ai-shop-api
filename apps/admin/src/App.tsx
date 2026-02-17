@@ -1,7 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Bootstrap from './pages/Bootstrap';
 import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
 import AdminLayout from './components/AdminLayout';
 import Shop from './pages/Shop';
 import Products from './pages/Products';
@@ -17,8 +16,7 @@ export default function App() {
       <Route path="/bootstrap" element={<Bootstrap />} />
       <Route path="/login" element={<Login />} />
       <Route path="/" element={<AdminLayout />}>
-        <Route index element={<Dashboard />} />
-        <Route path="shop" element={<Shop />} />
+        <Route index element={<Shop />} />
         <Route path="products" element={<Products />} />
         <Route path="products/new" element={<ProductNew />} />
         <Route path="products/:id" element={<ProductEdit />} />
