@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { apiGet } from '@/lib/api';
+import { apiGet, getApiBase } from '@/lib/api';
 import { useLocale } from '@/contexts/LocaleContext';
 import { LocaleToggle } from '@/components/LocaleToggle';
 import { getBilingual } from '@ai-shop/shared';
@@ -36,7 +36,8 @@ interface Category {
 
 function imgUrl(key: string | null): string {
   if (!key) return '';
-  return `/api/public/images/${encodeURIComponent(key)}`;
+  const base = getApiBase();
+  return `${base}/api/public/images/${encodeURIComponent(key)}`;
 }
 
 export function ShopPage() {

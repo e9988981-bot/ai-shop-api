@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { apiGet, apiPost } from '@/lib/api';
+import { apiGet, apiPost, getApiBase } from '@/lib/api';
 import { useLocale } from '@/contexts/LocaleContext';
 import { getBilingual, t } from '@ai-shop/shared';
 import { LocaleToggle } from '@/components/LocaleToggle';
@@ -40,7 +40,7 @@ interface Product {
 }
 
 function imgUrl(key: string): string {
-  return `/api/public/images/${encodeURIComponent(key)}`;
+  return `${getApiBase()}/api/public/images/${encodeURIComponent(key)}`;
 }
 
 export function ProductDetailPage({ slug }: { slug: string }) {

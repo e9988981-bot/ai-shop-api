@@ -144,6 +144,8 @@ Production-ready multi-tenant system where **each custom domain = one shop**. Bu
 - ตรวจสอบ **Root directory** ว่าเว้นว่าง (ใช้ repo root)
 - ดู **Deployments** → Build logs ว่า `bun run build:web` ผ่านและมีโฟลเดอร์ `out` ถูกสร้าง
 
+**ถ้ารูปร้านหรือรูปสินค้าไม่ขึ้นบนหน้าร้าน (ไอคอนรูปหัก):** หน้าร้านโหลดรูปจาก Worker — ต้องตั้ง **NEXT_PUBLIC_API_URL** เป็น URL ของ Worker (เช่น `https://ai-shop-api.xxx.workers.dev`) ใน Environment variables ของโปรเจกต์ Pages (หน้าร้าน) แล้ว **Redeploy** (Build ใหม่หลังเปลี่ยน env)
+
 ---
 
 ### Step 5: Create Pages Project (Admin) — หลังบ้าน

@@ -9,9 +9,13 @@ export interface ApiResponse<T = unknown> {
   status?: number;
 }
 
-function getBase(): string {
+export function getApiBase(): string {
   if (typeof window === 'undefined') return process.env.NEXT_PUBLIC_API_URL || '';
   return process.env.NEXT_PUBLIC_API_URL || '';
+}
+
+function getBase(): string {
+  return getApiBase();
 }
 
 export async function api<T>(path: string, init?: RequestInit): Promise<ApiResponse<T>> {
