@@ -3,6 +3,8 @@
 name = "ai-shop-api"
 main = "apps/api/dist/worker.js"
 compatibility_date = "2024-01-01"
+# จำเป็นเมื่อ Worker proxy /admin ไปที่ ADMIN_ORIGIN (Pages) — ไม่งั้นได้ error 1042
+compatibility_flags = ["global_fetch_strictly_public"]
 
 [vars]
 
