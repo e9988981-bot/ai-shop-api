@@ -121,15 +121,22 @@ Production-ready multi-tenant system where **each custom domain = one shop**. Bu
    | ส่วน | ค่า |
    |------|-----|
    | **Framework preset** | Next.js (Static HTML) |
-   | **Root directory** | เว้นว่าง |
+   | **Root directory** | เว้นว่าง (ใช้ repo root เพราะ build:web รันจาก root) |
    | **Build command** | `bun run build:web` |
-   | **Build output directory** | `out` |
+   | **Build output directory** | `apps/web/out` |
+
+   **สำคัญ:** ต้องใส่ `apps/web/out` ไม่ใช่ `out` — เพราะ build รันจาก root แต่ Next.js สร้างโฟลเดอร์ `out` ภายใน `apps/web/` เท่านั้น
 
 5. เพิ่ม **Environment variable** (ถ้าต้องการ):
    - Name: `NEXT_PUBLIC_API_URL`
    - Value: URL ของ API (เช่น `https://ai-shop-api.<subdomain>.workers.dev`) หรือเว้นว่างถ้าใช้ same domain
 
 6. คลิก **Save and Deploy**
+
+**ถ้า Pages deploy แล้วไม่มีหน้าเว็บ / 404 / ขาว:**
+- ตรวจสอบ **Build output directory** ว่าเป็น **`apps/web/out`** (ไม่ใช่ `out`)
+- ตรวจสอบ **Root directory** ว่าเว้นว่าง (ใช้ repo root)
+- ดู **Deployments** → Build logs ว่า `bun run build:web` ผ่านและมีโฟลเดอร์ `out` ถูกสร้าง
 
 ---
 
