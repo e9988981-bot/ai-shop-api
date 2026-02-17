@@ -7,7 +7,7 @@
     "dev": "next dev"
   },
   "dependencies": {
-    "@ai-shop/shared": "*",
+    "@ai-shop/shared": "file:../../packages/shared",
     "next": "^14.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"

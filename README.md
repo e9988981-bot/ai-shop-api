@@ -25,7 +25,10 @@ Production-ready multi-tenant system where **each custom domain = one shop**. Bu
 ├── schema/
 │   ├── schema.sql    # D1 schema (run in D1 Console)
 │   └── seed.sql      # Optional seed (or use bootstrap)
+└── wrangler.toml     # Worker config (root)
 ```
+
+---
 
 ## Deployment (Cloudflare Dashboard + GitHub)
 
@@ -39,143 +42,129 @@ Production-ready multi-tenant system where **each custom domain = one shop**. Bu
 
 ### Step 1: Create D1 Database
 
-1. Go to **Cloudflare Dashboard** → **Workers & Pages** → **D1 SQL Database**
-2. Click **Create database**
-3. Name: `ai-shop-db`
-4. Click **Create**
-5. Open the database → **Console** tab
-6. Copy the contents of `schema/schema.sql` and paste into the console
-7. Click **Execute** to create all tables
-8. Copy the **Database ID** (you will need it for the Worker)
+1. **Cloudflare Dashboard** → **Workers & Pages** → **D1 SQL Database**
+2. คลิก **Create database**
+3. ชื่อ: `ai-shop-db`
+4. คลิก **Create**
+5. เปิด database → แท็บ **Console**
+6. Copy เนื้อหาจาก `schema/schema.sql` วางลงใน Console
+7. คลิก **Execute** เพื่อสร้างตาราง
+8. Copy **Database ID** (ใช้สำหรับ Worker ในขั้นตอนถัดไป)
 
 ---
 
 ### Step 2: Create R2 Bucket
 
-1. Go to **Cloudflare Dashboard** → **R2 Object Storage**
-2. Click **Create bucket**
-3. Name: `ai-shop-uploads`
-4. Click **Create bucket**
+1. **Cloudflare Dashboard** → **R2 Object Storage**
+2. คลิก **Create bucket**
+3. ชื่อ: `ai-shop-uploads`
+4. คลิก **Create bucket**
 
 ---
 
-### Step 3: Create Worker (API)
+### Step 3: Create Worker (API) – ผูก GitHub จากขั้นตอนแรก
 
-1. Go to **Workers & Pages** → **Create** → **Worker**
-2. Name: `ai-shop-api`
-3. Click **Deploy** (creates a starter worker)
-4. Go to **Settings** → **Triggers** → note the Worker URL (e.g. `https://ai-shop-api.<your-subdomain>.workers.dev`)
-5. Go to **Settings** → **Variables and Secrets**:
-   - Add **D1 Database binding**:
+**สร้าง Worker โดยเลือก Connect to Git เลย** (ไม่ต้องสร้าง Worker ว่างก่อน)
+
+1. **Workers & Pages** → **Create** → **Worker**
+2. เลือก **Connect to Git** (ไม่ใช่ Deploy)
+3. เชื่อมต่อ **GitHub** แล้วเลือก repository `ai-shop`
+4. ตั้งค่าในหน้า **Set up your application**:
+
+   | ส่วน | ค่าที่ใช้ |
+   |------|-----------|
+   | **Project name** | `ai-shop-api` |
+   | **Root directory** | เว้นว่างไว้ (ใช้ repo root) |
+   | **Build command** | `bun run build:api` |
+   | **Deploy command** | `npx wrangler deploy` |
+
+5. คลิก **Deploy** (รอให้ build และ deploy เสร็จ)
+
+6. หลัง deploy เสร็จ → ไปที่ **ai-shop-api** → **Settings** → **Variables and Secrets** แล้วเพิ่ม:
+
+   - **D1 Database binding**
      - Variable name: `DB`
-     - D1 database: select `ai-shop-db`
-   - Add **R2 Bucket binding**:
+     - D1 database: เลือก `ai-shop-db`
+   - **R2 Bucket binding**
      - Variable name: `BUCKET`
-     - R2 bucket: select `ai-shop-uploads`
-   - Add **Secret** (encrypted environment variable):
+     - R2 bucket: เลือก `ai-shop-uploads`
+   - **Secret** (encrypted)
      - Name: `SESSION_SECRET`
-     - Value: a long random string (e.g. 32+ chars)
+     - Value: สร้างค่าสุ่มยาว 32+ ตัวอักษร
 
-6. Connect to Git:
-   - Go to **Workers & Pages** → **ai-shop-api** → **Settings** → **Integrations**
-   - Or: **Overview** → **Configure build** / **Connect to Git**
-   - If available: **Create with Git** / **Connect to Git**
-   - Connect your GitHub account and select the repository
-   - **Production branch**: `main`
-   - **Build configuration**:
-     - **Root directory**: leave empty (repository root)
-     - **Build command**: `npm install && npm run build -w apps/api`
-     - **Build output directory**: `apps/api/dist`
-   - **Environment variables**: Ensure `SESSION_SECRET` is set in Dashboard (as secret)
+7. **แก้ไข `wrangler.toml`** ที่ root ของ repo ก่อน deploy ครั้งแรก:
+   - เปิด `wrangler.toml`
+   - แทนค่า `REPLACE_WITH_YOUR_D1_DATABASE_ID` ด้วย **Database ID** จาก D1
+   - Commit และ push ขึ้น GitHub
 
-7. Update `wrangler.toml` in the repo:
-   - Set `database_id` under `[[d1_databases]]` to your D1 Database ID
-   - Ensure `bucket_name` under `[[r2_buckets]]` is `ai-shop-uploads`
-
-8. Manual alternative if Git integration is not available:
-   - Build locally (or via CI): `npm install && npm run build -w apps/api`
-   - Upload the built `apps/api/dist/worker.js` via Dashboard (Edit code → replace content)
-   - Or use **Wrangler** in a CI workflow (GitHub Actions) if you prefer
+8. **สำคัญ**: หลังเพิ่ม bindings แล้ว ให้ไปที่ **Deployments** → **Retry deployment** เพื่อให้ Worker รันใหม่พร้อม bindings
 
 ---
 
 ### Step 4: Create Pages Project (Web)
 
-1. Go to **Workers & Pages** → **Create** → **Pages** → **Connect to Git**
-2. Select your GitHub account and the `ai-shop` repository
+1. **Workers & Pages** → **Create** → **Pages** → **Connect to Git**
+2. เลือก repository `ai-shop`
 3. **Production branch**: `main`
-4. **Build configuration**:
-   - **Framework preset**: Next.js (Static HTML)
-   - **Root directory**: leave empty
-   - **Build command**: `npm install && npm run build -w apps/web`
-   - **Build output directory**: `out`
-5. Add **Environment variable**:
+4. ตั้งค่า **Build configuration**:
+
+   | ส่วน | ค่า |
+   |------|-----|
+   | **Framework preset** | Next.js (Static HTML) |
+   | **Root directory** | เว้นว่าง |
+   | **Build command** | `bun run build:web` |
+   | **Build output directory** | `out` |
+
+5. เพิ่ม **Environment variable** (ถ้าต้องการ):
    - Name: `NEXT_PUBLIC_API_URL`
-   - Value: Your API base URL (see routing section below)
-   - For same-domain routing: leave empty or set to `""`
-   - For separate Worker subdomain: e.g. `https://ai-shop-api.<subdomain>.workers.dev`
+   - Value: URL ของ API (เช่น `https://ai-shop-api.<subdomain>.workers.dev`) หรือเว้นว่างถ้าใช้ same domain
 
-6. Click **Save and Deploy**
+6. คลิก **Save and Deploy**
 
 ---
 
-### Step 5: Routing & Custom Domains
+### Step 5: Bootstrap – สร้างร้านค้าแรก
 
-**Option A: Same domain (recommended)**
+1. ตั้งค่า custom domain (ถ้ามี) หรือใช้ `*.pages.dev` / `*.workers.dev`
+2. เปิด: `https://<worker-url>/admin/bootstrap`
+   - เช่น `https://ai-shop-api.<account>.workers.dev/admin/bootstrap`
+3. กรอก:
+   - Domain (เช่น `ai-shop-api.<account>.workers.dev` หรือโดเมนที่ใช้)
+   - ชื่อร้าน (Lao + English)
+   - อีเมลและรหัสผ่านของ Owner (อย่างน้อย 8 ตัวอักษร)
+4. คลิก **Create Shop**
+5. ลงชื่อเข้าใช้ที่ `/admin/login`
 
-Use Cloudflare to route:
-
-- `https://yourshop.com` → Pages (web)
-- `https://yourshop.com/api/*` → Worker (API)
-
-1. Add custom domain to **Pages** project: `yourshop.com`
-2. Add a route in **Workers Routes** (or Pages Functions / _routes):
-   - Route: `yourshop.com/api/*`
-   - Worker: `ai-shop-api`
-
-Or use **Cloudflare for SaaS** / **Custom Domains** to attach multiple shop domains to the same project.
-
-**Option B: Subdomain**
-
-- Web: `shop.yourdomain.com` (Pages)
-- API: `api.yourdomain.com` (Worker)
-
-Set `NEXT_PUBLIC_API_URL` = `https://api.yourdomain.com` in Pages environment variables.
+Bootstrap จะใช้งานได้**เฉพาะเมื่อตาราง `users` ว่าง**เท่านั้น หลังสร้าง owner คนแรกแล้วจะใช้ไม่ได้อีก
 
 ---
 
-### Step 6: Bootstrap First Shop
+## Build Commands (สรุป)
 
-1. Add your first custom domain to the project (e.g. `myshop.pages.dev` or your custom domain)
-2. Ensure the domain points to your Pages + Worker setup
-3. Add the domain to the `shops` table manually, or use the bootstrap flow:
-4. Visit: `https://<your-domain>/admin/bootstrap`
-5. Fill in:
-   - Domain (e.g. `myshop.com` or `myshop.pages.dev`)
-   - Shop name (Lao + English)
-   - Owner email and password (min 8 chars)
-6. Click **Create Shop**
-7. Log in at `/admin/login`
+| โปรเจกต์ | คำสั่ง |
+|----------|--------|
+| Worker (API) | `bun run build:api` |
+| Pages (Web) | `bun run build:web` |
 
-The bootstrap endpoint is **only enabled when the `users` table is empty**. After the first owner is created, it returns 403.
+Cloudflare จะรัน `bun install` ให้อัตโนมัติก่อน build ไม่ต้องใส่ `npm install` เพิ่ม
 
 ---
 
 ## Environment Variables & Secrets
 
-| Variable        | Where    | Required | Description                          |
-|----------------|----------|----------|--------------------------------------|
-| `SESSION_SECRET` | Worker   | Yes      | Long random string for session signing |
-| `NEXT_PUBLIC_API_URL` | Pages | No       | API base URL; leave empty for same-origin |
+| Variable | ที่ใช้ | คำอธิบาย |
+|----------|--------|----------|
+| `SESSION_SECRET` | Worker | สตริงสุ่มยาวสำหรับเซสชัน (จำเป็น) |
+| `NEXT_PUBLIC_API_URL` | Pages | URL ของ API หรือเว้นว่างสำหรับ same-origin |
 
 ---
 
 ## Security
 
-- **Password hashing**: PBKDF2-SHA256, 100,000 iterations, 16-byte salt (WebCrypto)
-- **Session cookie**: `HttpOnly`, `Secure`, `SameSite=Lax`
-- **CSRF**: Same-site cookie + Origin header check for POST/PUT/DELETE
-- **Rate limit**: Login limited to 5 attempts per IP per minute (in-memory per colo)
+- **Password hashing**: PBKDF2-SHA256, 100,000 iterations, 16-byte salt
+- **Session cookie**: HttpOnly, Secure, SameSite=Lax
+- **CSRF**: Same-site cookie + ตรวจสอบ Origin
+- **Rate limit**: Login จำกัด 5 ครั้งต่อ IP ต่อนาที
 
 ---
 
@@ -183,11 +172,12 @@ The bootstrap endpoint is **only enabled when the `users` table is empty**. Afte
 
 ### Public
 
-- `GET /api/public/shop` – Shop info
-- `GET /api/public/products` – Product list (query: `category_id`, `search`)
-- `GET /api/public/products/:slug` – Product detail with images, options, WA numbers
-- `POST /api/public/orders` – Create order, returns `{ wa_url }`
-- `GET /api/public/images/:key` – Serve image from R2 (proxy)
+- `GET /api/public/shop` – ข้อมูลร้าน
+- `GET /api/public/categories` – รายการหมวดหมู่
+- `GET /api/public/products` – รายการสินค้า (query: `category_id`, `search`)
+- `GET /api/public/products/:slug` – รายละเอียดสินค้า
+- `POST /api/public/orders` – สร้าง order, ส่งกลับ `{ wa_url }`
+- `GET /api/public/images/:key` – รูปจาก R2
 
 ### Auth
 
@@ -195,31 +185,18 @@ The bootstrap endpoint is **only enabled when the `users` table is empty**. Afte
 - `POST /api/auth/logout`
 - `GET /api/auth/me`
 
-### Admin (requires auth)
+### Admin (ต้อง login)
 
-- `POST /api/admin/bootstrap` – Create first shop (only when no users exist)
+- `POST /api/admin/bootstrap` – สร้างร้านแรก (ใช้ได้เมื่อยังไม่มี users)
 - `GET/PUT /api/admin/shop`
 - CRUD `/api/admin/wa-numbers`
 - CRUD `/api/admin/categories`
 - CRUD `/api/admin/products`
-- `POST /api/admin/uploads/sign` – Returns `{ uploadUrl, r2Key, publicUrl }`
-- `POST /api/admin/products/:id/images` – Attach image (body: `{ r2_key }`)
-- `PUT /api/admin/products/:id/images/reorder` – Body: `{ image_ids: number[] }`
-- `DELETE /api/admin/product-images/:id`
-- CRUD `/api/admin/products/:id/options` (groups + values)
-- `GET /api/admin/orders` (query: `page`, `limit`, `status`, `search`)
-- `PUT /api/admin/orders` (query: `id`, body: `{ status }`)
+- `POST /api/admin/uploads/sign` – ได้ `{ uploadUrl, r2Key, publicUrl }`
+- CRUD `/api/admin/products/:id/images`
+- CRUD `/api/admin/products/:id/options`
+- `GET/PUT /api/admin/orders`
 - `GET /api/admin/orders/export.csv`
-
----
-
-## Image Upload Flow
-
-1. Web compresses image client-side (Canvas, max 1200×1200, JPEG 85%).
-2. Web calls `POST /api/admin/uploads/sign` with `{ ext }` → receives `{ uploadUrl, r2Key, publicUrl }`.
-3. Web `PUT`s the file to `uploadUrl` (with credentials).
-4. Web calls `POST /api/admin/products/:id/images` with `{ r2_key }` to attach.
-5. Images are served via `GET /api/public/images/:key` (Worker proxies R2).
 
 ---
 
@@ -228,4 +205,4 @@ The bootstrap endpoint is **only enabled when the `users` table is empty**. Afte
 - Lao (lo)
 - English (en)
 
-Toggle in the UI. Stored in `localStorage` as `ai_shop_locale`.
+สลับได้ใน UI และเก็บใน `localStorage` ด้วยคีย์ `ai_shop_locale`

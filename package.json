@@ -8,8 +8,9 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
-    "build:api": "cd apps/api && node build.mjs",
-    "build:web": "npm run build -w @ai-shop/shared && npm run build -w apps/web"
+    "build:api": "node apps/api/build.mjs",
+    "build:shared": "cd packages/shared && bun run build",
+    "build:web": "bun run build:shared && cd apps/web && bun run build"
   },
   "engines": {
     "node": ">=18"
