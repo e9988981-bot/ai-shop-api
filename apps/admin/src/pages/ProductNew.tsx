@@ -36,12 +36,12 @@ export default function ProductNew() {
     e.preventDefault();
     setError('');
     if (!form.slug.trim() || !form.name_lo.trim() || !form.name_en.trim()) {
-      setError('กรุณากรอก Slug, ชื่อ (ลาว) และชื่อ (English)');
+      setError('ກະລຸນາກອກ Slug, ຊື່ (ລາວ) ແລະຊື່ (English)');
       return;
     }
     const slug = form.slug.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
     if (!slug) {
-      setError('Slug ต้องเป็นตัวอักษรภาษาอังกฤษเล็ก ตัวเลข และขีดเท่านั้น (เช่น my-product)');
+      setError('Slug ຕ້ອງເປັນຕົວອັກສອນພາສາອັງກິດນ້ອຍ ຕົວເລກ ແລະຂີດເທົ່ານັ້ນ (ເຊັ່ນ my-product)');
       return;
     }
     setSaving(true);
@@ -56,14 +56,14 @@ export default function ProductNew() {
     if (res.ok && res.data?.id) {
       navigate(`/products/${res.data.id}`, { replace: true });
     } else {
-      setError(res.error || 'ไม่สามารถสร้างสินค้าได้');
+      setError(res.error || 'ບໍ່ສາມາດສ້າງສິນຄ້າໄດ້');
     }
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <span className="text-slate-500">กำลังโหลด...</span>
+        <span className="text-slate-500">ກຳລັງໂຫຼດ...</span>
       </div>
     );
   }
@@ -72,9 +72,9 @@ export default function ProductNew() {
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-4 sm:mb-6">
         <Link to="/products" className="text-slate-500 hover:text-slate-700 text-sm sm:text-base flex items-center gap-1">
-          <span>←</span> สินค้า
+          <span>←</span> ສິນຄ້າ
         </Link>
-        <h1 className="text-xl sm:text-2xl font-bold text-slate-800">เพิ่มสินค้าใหม่</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-800">ເພີ່ມສິນຄ້າໃໝ່</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="max-w-2xl space-y-4 sm:space-y-6">
@@ -85,23 +85,23 @@ export default function ProductNew() {
         )}
 
         <div className="card-admin">
-          <h2 className="font-semibold text-slate-800 mb-4">ข้อมูลสินค้า</h2>
+          <h2 className="font-semibold text-slate-800 mb-4">ຂໍ້ມູນສິນຄ້າ</h2>
           <div className="grid grid-cols-1 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Slug (ภาษาอังกฤษ, ใช้ใน URL)</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Slug (ພາສາອັງກິດ, ໃຊ້ໃນ URL)</label>
               <input
                 type="text"
                 value={form.slug}
                 onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
                 className="input-admin"
-                placeholder="เช่น my-product"
+                placeholder="ເຊັ່ນ my-product"
                 required
               />
-              <p className="text-xs text-slate-500 mt-1">ใช้ตัวอักษรเล็ก a-z, ตัวเลข และขีด (-) เท่านั้น</p>
+              <p className="text-xs text-slate-500 mt-1">ໃຊ້ຕົວອັກສອນນ້ອຍ a-z, ຕົວເລກ ແລະຂີດ (-) ເທົ່ານັ້ນ</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">ชื่อ (ลาว)</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">ຊື່ (ລາວ)</label>
                 <input
                   type="text"
                   value={form.name_lo}
@@ -122,13 +122,13 @@ export default function ProductNew() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">หมวดหมู่</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">ຫມວດຫມູ່</label>
               <select
                 value={form.category_id ?? ''}
                 onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value ? Number(e.target.value) : null }))}
                 className="input-admin"
               >
-                <option value="">— ไม่มี —</option>
+                <option value="">— ບໍ່ມີ —</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>{c.name_lo} / {c.name_en}</option>
                 ))}
@@ -136,7 +136,7 @@ export default function ProductNew() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">ราคา</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">ລາຄາ</label>
                 <input
                   type="number"
                   min={0}
@@ -147,19 +147,19 @@ export default function ProductNew() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">สถานะ</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">ສະຖານະ</label>
                 <select
                   value={form.status}
                   onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as 'draft' | 'published' }))}
                   className="input-admin"
                 >
-                  <option value="draft">แบบร่าง</option>
-                  <option value="published">เผยแพร่</option>
+                  <option value="draft">ຮ່າງ</option>
+                  <option value="published">ເຜີຍແຜ່</option>
                 </select>
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">คำอธิบาย (ลาว) — ไม่บังคับ</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">ຄຳອະທິບາຍ (ລາວ) — ບໍ່ບັງຄັບ</label>
               <textarea
                 value={form.desc_lo}
                 onChange={(e) => setForm((f) => ({ ...f, desc_lo: e.target.value }))}
@@ -179,15 +179,15 @@ export default function ProductNew() {
           </div>
           <div className="mt-6 flex gap-3">
             <button type="submit" disabled={saving} className="btn-primary">
-              {saving ? 'กำลังสร้าง...' : 'สร้างสินค้า'}
+              {saving ? 'ກຳລັງສ້າງ...' : 'ສ້າງສິນຄ້າ'}
             </button>
             <Link to="/products" className="btn-secondary">
-              ยกเลิก
+              ຍົກເລີກ
             </Link>
           </div>
         </div>
       </form>
-      <p className="text-slate-500 text-sm mt-2">หลังสร้างแล้ว จะเข้าสู่หน้าแก้ไขเพื่ออัปโหลดรูปสินค้าได้</p>
+      <p className="text-slate-500 text-sm mt-2">ຫຼັງສ້າງແລ້ວ ຈະເຂົ້າສູ່ຫນ້າແກ້ໄຂເພື່ອອັບໂຫຼດຮູບສິນຄ້າໄດ້</p>
     </div>
   );
 }

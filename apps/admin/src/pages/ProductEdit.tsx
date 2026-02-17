@@ -166,15 +166,15 @@ export default function ProductEdit() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <span className="text-slate-500">กำลังโหลด...</span>
+        <span className="text-slate-500">ກຳລັງໂຫຼດ...</span>
       </div>
     );
   }
   if (!product) {
     return (
       <div>
-        <p className="text-slate-500">ไม่พบสินค้า</p>
-        <Link to="/products" className="text-blue-600 hover:underline mt-2 inline-block">← กลับรายการสินค้า</Link>
+        <p className="text-slate-500">ບໍ່ພົບສິນຄ້າ</p>
+        <Link to="/products" className="text-blue-600 hover:underline mt-2 inline-block">← ກັບລາຍການສິນຄ້າ</Link>
       </div>
     );
   }
@@ -184,8 +184,8 @@ export default function ProductEdit() {
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-4 sm:mb-6">
-        <Link to="/products" className="text-slate-500 hover:text-slate-700 text-sm sm:text-base">← สินค้า</Link>
-        <h1 className="text-xl sm:text-2xl font-bold text-slate-800">แก้ไขสินค้า</h1>
+        <Link to="/products" className="text-slate-500 hover:text-slate-700 text-sm sm:text-base">← ສິນຄ້າ</Link>
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-800">ແກ້ໄຂສິນຄ້າ</h1>
       </div>
 
       <div className="max-w-2xl space-y-4 sm:space-y-6">
@@ -201,10 +201,10 @@ export default function ProductEdit() {
         )}
         {/* ข้อมูลพื้นฐาน */}
         <div className="card-admin">
-          <h2 className="font-semibold text-slate-800 mb-4">ข้อมูลสินค้า</h2>
+          <h2 className="font-semibold text-slate-800 mb-4">ຂໍ້ມູນສິນຄ້າ</h2>
           <div className="grid grid-cols-1 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Slug (ภาษาอังกฤษ)</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Slug (ພາສາອັງກິດ)</label>
               <input
                 type="text"
                 value={form.slug}
@@ -215,7 +215,7 @@ export default function ProductEdit() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm text-slate-600 mb-1">ชื่อ (ลาว)</label>
+                <label className="block text-sm text-slate-600 mb-1">ຊື່ (ລາວ)</label>
                 <input
                   type="text"
                   value={form.name_lo}
@@ -234,20 +234,20 @@ export default function ProductEdit() {
               </div>
             </div>
             <div>
-              <label className="block text-sm text-slate-600 mb-1">หมวดหมู่</label>
+              <label className="block text-sm text-slate-600 mb-1">ຫມວດຫມູ່</label>
               <select
                 value={form.category_id ?? ''}
                 onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value ? Number(e.target.value) : null }))}
                 className="input-admin"
               >
-                <option value="">— ไม่มี —</option>
+                <option value="">— ບໍ່ມີ —</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>{c.name_lo} / {c.name_en}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">ราคา</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">ລາຄາ</label>
               <input
                 type="number"
                 min={0}
@@ -258,18 +258,18 @@ export default function ProductEdit() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">สถานะ</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">ສະຖານະ</label>
               <select
                 value={form.status}
                 onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as 'draft' | 'published' }))}
                 className="input-admin"
               >
-                <option value="draft">แบบร่าง</option>
-                <option value="published">เผยแพร่</option>
+                <option value="draft">ຮ່າງ</option>
+                <option value="published">ເຜີຍແຜ່</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">คำอธิบาย (ลาว)</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">ຄຳອະທິບາຍ (ລາວ)</label>
               <textarea
                 value={form.desc_lo}
                 onChange={(e) => setForm((f) => ({ ...f, desc_lo: e.target.value }))}
@@ -293,14 +293,14 @@ export default function ProductEdit() {
             disabled={saving}
             className="mt-4 btn-primary"
           >
-            {saving ? 'กำลังบันทึก...' : 'บันทึกข้อมูล'}
+            {saving ? 'ກຳລັງບັນທຶກ...' : 'ບັນທຶກຂໍ້ມູນ'}
           </button>
         </div>
 
         {/* รูปสินค้า */}
         <div className="card-admin">
-          <h2 className="font-semibold text-slate-800 mb-4">รูปสินค้า</h2>
-          <p className="text-sm text-slate-500 mb-3">รูปแรกที่แสดงบนหน้าร้านจะใช้เป็นรูปปก (cover) — กด «ตั้งเป็นรูปปก» ได้</p>
+          <h2 className="font-semibold text-slate-800 mb-4">ຮູບສິນຄ້າ</h2>
+          <p className="text-sm text-slate-500 mb-3">ຮູບທຳອິດທີ່ສະແດງບນຫນ້າຮ້ານຈະໃຊ້ເປັນຮູບປົກ (cover) — ກົດ «ຕັ້ງເປັນຮູບປົກ» ໄດ້</p>
           <div className="flex flex-wrap gap-3">
             {images.map((img, idx) => (
               <div key={img.id} className="relative group border border-slate-200 rounded-lg overflow-hidden w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0">
@@ -312,11 +312,11 @@ export default function ProductEdit() {
                       onClick={() => setCover(img.id)}
                       className="text-xs px-2 py-1 bg-white text-slate-800 rounded"
                     >
-                      ตั้งเป็นรูปปก
+                      ຕັ້ງເປັນຮູບປົກ
                     </button>
                   )}
                   {product.cover_image_id === img.id && (
-                    <span className="text-xs text-green-300">รูปปก</span>
+                    <span className="text-xs text-green-300">ຮູບປົກ</span>
                   )}
                   <div className="flex gap-1">
                     <button
@@ -341,7 +341,7 @@ export default function ProductEdit() {
                     onClick={() => deleteImage(img.id)}
                     className="text-xs px-2 py-1 bg-red-600 text-white rounded"
                   >
-                    ลบ
+                    ລຶບ
                   </button>
                 </div>
               </div>
@@ -364,7 +364,7 @@ export default function ProductEdit() {
                 disabled={uploading}
                 className="text-slate-500 hover:text-slate-700 text-xs sm:text-sm disabled:opacity-50 text-center px-2"
               >
-                {uploading ? 'กำลังอัปโหลด...' : '+ เพิ่มรูป'}
+                {uploading ? 'ກຳລັງອັບໂຫຼດ...' : '+ ເພີ່ມຮູບ'}
               </button>
             </div>
           </div>

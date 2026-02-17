@@ -37,10 +37,10 @@ export default function Products() {
         setProducts(res.data.items || []);
         setTotal(res.data.total ?? 0);
         if (res.data.total === 0 && !statusFilter) {
-          setError('ยังไม่มีสินค้าในระบบ — กด "เพิ่มสินค้า" เพื่อสร้างสินค้าแรก');
+          setError('ຍັງບໍ່ມີສິນຄ້າໃນລະບົບ — ກົດ "ເພີ່ມສິນຄ້າ" ເພື່ອສ້າງສິນຄ້າຄັ້ງທຳອິດ');
         }
       } else {
-        const errMsg = res.error || 'ไม่สามารถโหลดรายการสินค้าได้';
+        const errMsg = res.error || 'ບໍ່ສາມາດໂຫຼດລາຍການສິນຄ້າໄດ້';
         console.error('Failed to load products:', res.error, res.status);
         setError(errMsg);
         setProducts([]);
@@ -49,7 +49,7 @@ export default function Products() {
       setLoading(false);
     }).catch((e) => {
       console.error('Error loading products:', e);
-      setError('เกิดข้อผิดพลาดในการโหลดข้อมูล');
+      setError('ເກີດຂໍ້ຜິດພາດໃນການໂຫຼດຂໍ້ມູນ');
       setLoading(false);
     });
   };
@@ -57,7 +57,7 @@ export default function Products() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <span className="text-slate-500">กำลังโหลด...</span>
+        <span className="text-slate-500">ກຳລັງໂຫຼດ...</span>
       </div>
     );
   }
@@ -66,13 +66,13 @@ export default function Products() {
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-800">สินค้า</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800">ສິນຄ້າ</h1>
           {total > 0 && (
-            <p className="text-slate-500 text-sm mt-1">ทั้งหมด {total} รายการ</p>
+            <p className="text-slate-500 text-sm mt-1">ທັງໝົດ {total} ລາຍການ</p>
           )}
         </div>
         <Link to="/products/new" className="btn-primary w-full sm:w-auto text-center">
-          เพิ่มสินค้า
+          ເພີ່ມສິນຄ້າ
         </Link>
       </div>
       
@@ -83,13 +83,13 @@ export default function Products() {
           onChange={(e) => setStatusFilter(e.target.value)}
           className="input-admin w-full sm:w-48"
         >
-          <option value="">ทุกสถานะ</option>
-          <option value="draft">แบบร่าง</option>
-          <option value="published">เผยแพร่</option>
+          <option value="">ທຸກສະຖານະ</option>
+          <option value="draft">ຮ່າງ</option>
+          <option value="published">ເຜີຍແຜ່</option>
         </select>
       </div>
       
-      <p className="text-slate-500 mb-4 text-sm">คลิกที่สินค้าเพื่อแก้ไขข้อมูลและจัดการรูปภาพ</p>
+      <p className="text-slate-500 mb-4 text-sm">ກົດທີ່ສິນຄ້າເພື່ອແກ້ໄຂຂໍ້ມູນແລະຈັດການຮູບພາບ</p>
       
       {error && (
         <div className={`mb-4 px-4 py-3 rounded-xl text-sm ${
@@ -110,10 +110,10 @@ export default function Products() {
       <div className="md:hidden space-y-3">
         {products.length === 0 && !loading ? (
           <div className="bg-white rounded-xl border border-slate-200 p-6 text-center text-slate-500">
-            {error ? error : 'ยังไม่มีสินค้า'}
+            {error ? error : 'ຍັງບໍ່ມີສິນຄ້າ'}
             {!error && (
               <div className="mt-3">
-                <Link to="/products/new" className="btn-primary inline-block">เพิ่มสินค้า</Link>
+                <Link to="/products/new" className="btn-primary inline-block">ເພີ່ມສິນຄ້າ</Link>
               </div>
             )}
           </div>
@@ -130,7 +130,7 @@ export default function Products() {
                     <img src={imgUrl(p.cover_image)} alt="" className="w-16 h-16 object-cover rounded border border-slate-200" />
                   ) : (
                     <div className="w-16 h-16 bg-slate-200 rounded flex items-center justify-center text-slate-400 text-xs border border-slate-300">
-                      ไม่มีรูป
+                      ບໍ່ມີຮູບ
                     </div>
                   )}
                 </div>
@@ -140,13 +140,13 @@ export default function Products() {
                     <div className="text-xs text-slate-500 truncate">{p.name_en}</div>
                   )}
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="font-semibold text-slate-800">৳{p.price.toLocaleString()}</span>
+                    <span className="font-semibold text-slate-800">₭{p.price.toLocaleString()}</span>
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                       p.status === 'published' 
                         ? 'bg-green-100 text-green-700' 
                         : 'bg-slate-100 text-slate-600'
                     }`}>
-                      {p.status === 'published' ? 'เผยแพร่' : 'แบบร่าง'}
+                      {p.status === 'published' ? 'ເຜີຍແຜ່' : 'ຮ່າງ'}
                     </span>
                   </div>
                 </div>
@@ -162,11 +162,11 @@ export default function Products() {
           <table className="w-full">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
-                <th className="text-left py-2 px-3 text-slate-600 font-medium w-14">รูป</th>
-                <th className="text-left py-2 px-3 text-slate-600 font-medium">ชื่อ</th>
+                <th className="text-left py-2 px-3 text-slate-600 font-medium w-14">ຮູບ</th>
+                <th className="text-left py-2 px-3 text-slate-600 font-medium">ຊື່</th>
                 <th className="text-left py-2 px-3 text-slate-600 font-medium">Slug</th>
-                <th className="text-left py-2 px-3 text-slate-600 font-medium">ราคา</th>
-                <th className="text-left py-2 px-3 text-slate-600 font-medium">สถานะ</th>
+                <th className="text-left py-2 px-3 text-slate-600 font-medium">ລາຄາ</th>
+                <th className="text-left py-2 px-3 text-slate-600 font-medium">ສະຖານະ</th>
                 <th className="text-left py-2 px-3 text-slate-600 font-medium w-20"></th>
               </tr>
             </thead>
@@ -174,8 +174,8 @@ export default function Products() {
               {products.length === 0 && !loading ? (
                 <tr>
                   <td colSpan={6} className="py-8 text-center text-slate-500">
-                    {error ? error : 'ยังไม่มีสินค้า — '}
-                    {!error && <Link to="/products/new" className="text-blue-600 hover:underline">เพิ่มสินค้า</Link>}
+                    {error ? error : 'ຍັງບໍ່ມີສິນຄ້າ — '}
+                    {!error && <Link to="/products/new" className="text-blue-600 hover:underline">ເພີ່ມສິນຄ້າ</Link>}
                   </td>
                 </tr>
               ) : (
@@ -186,7 +186,7 @@ export default function Products() {
                         <img src={imgUrl(p.cover_image)} alt="" className="w-12 h-12 object-cover rounded border border-slate-200" />
                       ) : (
                         <div className="w-12 h-12 bg-slate-200 rounded flex items-center justify-center text-slate-400 text-xs border border-slate-300">
-                          ไม่มีรูป
+                          ບໍ່ມີຮູບ
                         </div>
                       )}
                     </td>
@@ -200,7 +200,7 @@ export default function Products() {
                       <code className="text-xs text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded">{p.slug}</code>
                     </td>
                     <td className="py-3 px-4">
-                      <span className="font-semibold text-slate-800">৳{p.price.toLocaleString()}</span>
+                      <span className="font-semibold text-slate-800">₭{p.price.toLocaleString()}</span>
                     </td>
                     <td className="py-3 px-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -208,12 +208,12 @@ export default function Products() {
                           ? 'bg-green-100 text-green-700' 
                           : 'bg-slate-100 text-slate-600'
                       }`}>
-                        {p.status === 'published' ? 'เผยแพร่' : 'แบบร่าง'}
+                        {p.status === 'published' ? 'ເຜີຍແຜ່' : 'ຮ່າງ'}
                       </span>
                     </td>
                     <td className="py-3 px-4">
                       <Link to={`/products/${p.id}`} className="text-blue-600 hover:text-blue-700 hover:underline text-sm font-medium">
-                        แก้ไข →
+                        ແກ້ໄຂ →
                       </Link>
                     </td>
                   </tr>

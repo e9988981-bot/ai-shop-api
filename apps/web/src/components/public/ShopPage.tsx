@@ -176,7 +176,7 @@ export function ShopPage() {
                     {getBilingual(locale, { lo: p.name_lo, en: p.name_en })}
                   </h3>
                   <p className="text-lg font-bold mt-2" style={{ color: shop?.theme_primary || '#2563eb' }}>
-                    ৳{p.price}
+                    ₭{p.price.toLocaleString()}
                   </p>
                 </div>
               </Link>

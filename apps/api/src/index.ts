@@ -777,14 +777,19 @@ async function handleAdmin(
       const offset = (page - 1) * limit;
       const status = url.searchParams.get('status');
       const categoryId = url.searchParams.get('category_id');
-      let q = 'FROM products WHERE shop_id = ?';
+      let whereClause = 'WHERE p.shop_id = ?';
       const args: (string | number)[] = [actualShopId];
-      if (status) { q += ' AND status = ?'; args.push(status); }
-      if (categoryId) { q += ' AND category_id = ?'; args.push(Number(categoryId)); }
-      const countRow = await env.DB.prepare(`SELECT COUNT(*) as c ${q}`).bind(...args).first<{ c: number }>();
+      if (status) { whereClause += ' AND p.status = ?'; args.push(status); }
+      if (categoryId) { whereClause += ' AND p.category_id = ?'; args.push(Number(categoryId)); }
+      const countRow = await env.DB.prepare(
+        `SELECT COUNT(*) as c FROM products p ${whereClause}`
+      ).bind(...args).first<{ c: number }>();
       const total = countRow?.c ?? 0;
       const { results } = await env.DB.prepare(
-        `SELECT p.*, c.name_lo as cat_name_lo, c.name_en as cat_name_en ${q}
+        `SELECT p.*, c.name_lo as cat_name_lo, c.name_en as cat_name_en 
+         FROM products p
+         LEFT JOIN categories c ON p.category_id = c.id AND c.shop_id = p.shop_id
+         ${whereClause}
          ORDER BY p.updated_at DESC LIMIT ? OFFSET ?`
       )
         .bind(...args, limit, offset)

@@ -3,12 +3,12 @@ import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import { apiGet, apiPost } from '@/lib/api';
 
 const nav = [
-  { href: '/', label: 'แดชบอร์ด', exact: true },
-  { href: '/shop', label: 'ตั้งค่าข้อมูลร้าน', exact: true },
-  { href: '/products', label: 'สินค้า', exact: false },
-  { href: '/orders', label: 'ออเดอร์', exact: true },
-  { href: '/categories', label: 'หมวดหมู่', exact: true },
-  { href: '/wa-numbers', label: 'เบอร์ WhatsApp', exact: true },
+  { href: '/', label: 'ແຜງຄວບຄຸມ', exact: true },
+  { href: '/shop', label: 'ຕັ້ງຄ່າຂໍ້ມູນຮ້ານ', exact: true },
+  { href: '/products', label: 'ສິນຄ້າ', exact: false },
+  { href: '/orders', label: 'ອໍເດີ', exact: true },
+  { href: '/categories', label: 'ຫມວດຫມູ່', exact: true },
+  { href: '/wa-numbers', label: 'ເບີ WhatsApp', exact: true },
 ];
 
 function isActive(path: string, href: string, exact: boolean) {
@@ -40,13 +40,11 @@ export default function AdminLayout() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <span className="text-slate-500">กำลังโหลด...</span>
+        <span className="text-slate-500">ກຳລັງໂຫຼດ...</span>
       </div>
     );
   }
   if (!user) return null;
-
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <div className="min-h-screen flex bg-slate-100">
@@ -66,7 +64,7 @@ export default function AdminLayout() {
         sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
       }`}>
         <div className="p-5 border-b border-slate-700 flex items-center justify-between">
-          <span className="font-bold text-lg tracking-tight">หลังบ้าน</span>
+          <span className="font-bold text-lg tracking-tight">ຫຼັງບ້ານ</span>
           <button
             type="button"
             onClick={() => setSidebarOpen(false)}
@@ -103,7 +101,7 @@ export default function AdminLayout() {
             onClick={handleLogout}
             className="mt-2 text-sm text-slate-400 hover:text-red-300 transition"
           >
-            ออกจากระบบ
+            ອອກຈາກລະບົບ
           </button>
         </div>
       </aside>
