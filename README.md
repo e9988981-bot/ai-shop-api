@@ -18,14 +18,22 @@ Production-ready multi-tenant system where **each custom domain = one shop**. Bu
 ```
 /
 ├── apps/
-│   ├── web/          # Next.js → Cloudflare Pages
-│   └── api/          # Cloudflare Worker
+│   ├── web/              # Next.js → Cloudflare Pages (หน้าเว็บ + Admin)
+│   │   ├── src/
+│   │   │   ├── app/      # หน้า public: /, /products/[slug], /admin/*
+│   │   │   ├── components/
+│   │   │   └── lib/
+│   │   ├── public/
+│   │   └── next.config.js
+│   └── api/              # Cloudflare Worker (API)
+│       ├── src/index.ts
+│       └── build.mjs
 ├── packages/
-│   └── shared/       # Types, Zod schemas, i18n (Lao + English)
+│   └── shared/           # Types, Zod schemas, i18n (Lao + English)
 ├── schema/
-│   ├── schema.sql    # D1 schema (run in D1 Console)
-│   └── seed.sql      # Optional seed (or use bootstrap)
-└── wrangler.toml     # Worker config (root)
+│   ├── schema.sql        # D1 schema (run ใน D1 Console)
+│   └── seed.sql          # Optional seed (หรือใช้ bootstrap)
+└── wrangler.toml         # Worker config (root)
 ```
 
 ---
@@ -103,10 +111,12 @@ Production-ready multi-tenant system where **each custom domain = one shop**. Bu
 
 ### Step 4: Create Pages Project (Web)
 
+หน้าเว็บ (public + admin) อยู่ใน `apps/web/` เป็น Next.js App Router
+
 1. **Workers & Pages** → **Create** → **Pages** → **Connect to Git**
-2. เลือก repository `ai-shop`
+2. เลือก repository เดียวกับ Worker (`ai-shop`)
 3. **Production branch**: `main`
-4. ตั้งค่า **Build configuration**:
+4. ตั้งค่า **Build configuration** (โค้ดเว็บอยู่ใน `apps/web/`):
 
    | ส่วน | ค่า |
    |------|-----|
