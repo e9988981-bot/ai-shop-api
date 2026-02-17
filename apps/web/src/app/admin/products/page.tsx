@@ -50,11 +50,11 @@ export default function AdminProductsPage() {
                     <div className="w-12 h-12 bg-gray-200 rounded" />
                   )}
                 </td>
-                <td className="px-4 py-2">{String(p.name_en || p.name_lo)}</td>
-                <td className="px-4 py-2">৳{p.price}</td>
-                <td className="px-4 py-2">{String(p.status)}</td>
+                <td className="px-4 py-2">{String(p.name_en ?? p.name_lo ?? '')}</td>
+                <td className="px-4 py-2">৳{String(p.price ?? '')}</td>
+                <td className="px-4 py-2">{String(p.status ?? '')}</td>
                 <td className="px-4 py-2">
-                  <Link href={`/admin/products/${p.id}`} className="text-blue-600 hover:underline">
+                  <Link href={`/admin/products/${String(p.id ?? '')}`} className="text-blue-600 hover:underline">
                     Edit
                   </Link>
                 </td>
