@@ -76,9 +76,9 @@ export default function AdminShopPage() {
         <div>
           <label className="block text-sm font-medium mb-1">Avatar</label>
           <div className="flex items-center gap-4">
-            {shop?.avatar_key && (
+            {shop?.avatar_key ? (
               <img src={imgUrl(shop.avatar_key as string)} alt="" className="w-16 h-16 rounded-full object-cover" />
-            )}
+            ) : null}
             <input
               ref={avatarRef}
               type="file"
@@ -100,9 +100,9 @@ export default function AdminShopPage() {
         <div>
           <label className="block text-sm font-medium mb-1">Cover</label>
           <div className="flex items-center gap-4">
-            {shop?.cover_key && (
+            {shop?.cover_key ? (
               <img src={imgUrl(shop.cover_key as string)} alt="" className="w-32 h-16 object-cover rounded" />
-            )}
+            ) : null}
             <input
               ref={coverRef}
               type="file"
