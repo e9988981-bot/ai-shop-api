@@ -7,7 +7,7 @@
     "dev": "npx wrangler dev"
   },
   "dependencies": {
-    "@ai-shop/shared": "workspace:*",
+    "@ai-shop/shared": "*",
     "zod": "^3.23.8"
   },
   "devDependencies": {

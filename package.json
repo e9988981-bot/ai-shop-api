@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
-    "build:api": "npm run build -w apps/api",
+    "build:api": "cd apps/api && node build.mjs",
     "build:web": "npm run build -w @ai-shop/shared && npm run build -w apps/web"
   },
   "engines": {
