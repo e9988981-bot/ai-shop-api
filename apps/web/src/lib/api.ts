@@ -6,6 +6,7 @@ export interface ApiResponse<T = unknown> {
   ok: boolean;
   data?: T;
   error?: string;
+  status?: number;
 }
 
 function getBase(): string {
@@ -13,7 +14,7 @@ function getBase(): string {
   return process.env.NEXT_PUBLIC_API_URL || '';
 }
 
-export async function api<T>(path: string, init?: RequestInit): Promise<ApiResponse<T> & { status?: number }> {
+export async function api<T>(path: string, init?: RequestInit): Promise<ApiResponse<T>> {
   const base = getBase();
   const url = `${base}${path.startsWith('/') ? path : '/' + path}`;
   const res = await fetch(url, {
