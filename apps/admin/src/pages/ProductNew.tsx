@@ -70,14 +70,14 @@ export default function ProductNew() {
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-6">
-        <Link to="/products" className="text-slate-500 hover:text-slate-700 flex items-center gap-1">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-4 sm:mb-6">
+        <Link to="/products" className="text-slate-500 hover:text-slate-700 text-sm sm:text-base flex items-center gap-1">
           <span>←</span> สินค้า
         </Link>
-        <h1 className="text-2xl font-bold text-slate-800">เพิ่มสินค้าใหม่</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-800">เพิ่มสินค้าใหม่</h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="max-w-2xl space-y-6">
+      <form onSubmit={handleSubmit} className="max-w-2xl space-y-4 sm:space-y-6">
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
             {error}
@@ -99,7 +99,7 @@ export default function ProductNew() {
               />
               <p className="text-xs text-slate-500 mt-1">ใช้ตัวอักษรเล็ก a-z, ตัวเลข และขีด (-) เท่านั้น</p>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">ชื่อ (ลาว)</label>
                 <input
@@ -134,7 +134,7 @@ export default function ProductNew() {
                 ))}
               </select>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">ราคา</label>
                 <input

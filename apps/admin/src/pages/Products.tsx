@@ -64,24 +64,24 @@ export default function Products() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">สินค้า</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800">สินค้า</h1>
           {total > 0 && (
             <p className="text-slate-500 text-sm mt-1">ทั้งหมด {total} รายการ</p>
           )}
         </div>
-        <Link to="/products/new" className="btn-primary">
+        <Link to="/products/new" className="btn-primary w-full sm:w-auto text-center">
           เพิ่มสินค้า
         </Link>
       </div>
       
       {/* Filter */}
-      <div className="mb-4 flex gap-3">
+      <div className="mb-4">
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="input-admin w-48"
+          className="input-admin w-full sm:w-48"
         >
           <option value="">ทุกสถานะ</option>
           <option value="draft">แบบร่าง</option>
@@ -89,7 +89,7 @@ export default function Products() {
         </select>
       </div>
       
-      <p className="text-slate-500 mb-4">คลิกที่สินค้าเพื่อแก้ไขข้อมูลและจัดการรูปภาพ</p>
+      <p className="text-slate-500 mb-4 text-sm">คลิกที่สินค้าเพื่อแก้ไขข้อมูลและจัดการรูปภาพ</p>
       
       {error && (
         <div className={`mb-4 px-4 py-3 rounded-xl text-sm ${
@@ -106,69 +106,122 @@ export default function Products() {
         </div>
       )}
       
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-        <table className="w-full">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              <th className="text-left py-2 px-3 text-slate-600 font-medium w-14">รูป</th>
-              <th className="text-left py-2 px-3 text-slate-600 font-medium">ชื่อ</th>
-              <th className="text-left py-2 px-3 text-slate-600 font-medium">Slug</th>
-              <th className="text-left py-2 px-3 text-slate-600 font-medium">ราคา</th>
-              <th className="text-left py-2 px-3 text-slate-600 font-medium">สถานะ</th>
-              <th className="text-left py-2 px-3 text-slate-600 font-medium w-20"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.length === 0 && !loading ? (
-              <tr>
-                <td colSpan={6} className="py-8 text-center text-slate-500">
-                  {error ? error : 'ยังไม่มีสินค้า — '}
-                  {!error && <Link to="/products/new" className="text-blue-600 hover:underline">เพิ่มสินค้า</Link>}
-                </td>
-              </tr>
-            ) : (
-              products.map((p) => (
-                <tr key={p.id} className="border-b border-slate-100 hover:bg-slate-50 transition">
-                  <td className="py-3 px-4">
-                    {p.cover_image ? (
-                      <img src={imgUrl(p.cover_image)} alt="" className="w-12 h-12 object-cover rounded border border-slate-200" />
-                    ) : (
-                      <div className="w-12 h-12 bg-slate-200 rounded flex items-center justify-center text-slate-400 text-xs border border-slate-300">
-                        ไม่มีรูป
-                      </div>
-                    )}
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="font-medium text-slate-800">{p.name_lo || p.name_en}</div>
-                    {(p.name_lo && p.name_en) && (
-                      <div className="text-xs text-slate-500 mt-0.5">{p.name_en}</div>
-                    )}
-                  </td>
-                  <td className="py-3 px-4">
-                    <code className="text-xs text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded">{p.slug}</code>
-                  </td>
-                  <td className="py-3 px-4">
+      {/* Mobile: Card view */}
+      <div className="md:hidden space-y-3">
+        {products.length === 0 && !loading ? (
+          <div className="bg-white rounded-xl border border-slate-200 p-6 text-center text-slate-500">
+            {error ? error : 'ยังไม่มีสินค้า'}
+            {!error && (
+              <div className="mt-3">
+                <Link to="/products/new" className="btn-primary inline-block">เพิ่มสินค้า</Link>
+              </div>
+            )}
+          </div>
+        ) : (
+          products.map((p) => (
+            <Link
+              key={p.id}
+              to={`/products/${p.id}`}
+              className="block bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow transition"
+            >
+              <div className="flex gap-3">
+                <div className="shrink-0">
+                  {p.cover_image ? (
+                    <img src={imgUrl(p.cover_image)} alt="" className="w-16 h-16 object-cover rounded border border-slate-200" />
+                  ) : (
+                    <div className="w-16 h-16 bg-slate-200 rounded flex items-center justify-center text-slate-400 text-xs border border-slate-300">
+                      ไม่มีรูป
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-slate-800 truncate">{p.name_lo || p.name_en}</div>
+                  {(p.name_lo && p.name_en) && (
+                    <div className="text-xs text-slate-500 truncate">{p.name_en}</div>
+                  )}
+                  <div className="flex items-center gap-2 mt-1">
                     <span className="font-semibold text-slate-800">৳{p.price.toLocaleString()}</span>
-                  </td>
-                  <td className="py-3 px-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                       p.status === 'published' 
                         ? 'bg-green-100 text-green-700' 
                         : 'bg-slate-100 text-slate-600'
                     }`}>
                       {p.status === 'published' ? 'เผยแพร่' : 'แบบร่าง'}
                     </span>
-                  </td>
-                  <td className="py-3 px-4">
-                    <Link to={`/products/${p.id}`} className="text-blue-600 hover:text-blue-700 hover:underline text-sm font-medium">
-                      แก้ไข →
-                    </Link>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          ))
+        )}
+      </div>
+
+      {/* Desktop: Table view */}
+      <div className="hidden md:block bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-slate-50 border-b border-slate-200">
+              <tr>
+                <th className="text-left py-2 px-3 text-slate-600 font-medium w-14">รูป</th>
+                <th className="text-left py-2 px-3 text-slate-600 font-medium">ชื่อ</th>
+                <th className="text-left py-2 px-3 text-slate-600 font-medium">Slug</th>
+                <th className="text-left py-2 px-3 text-slate-600 font-medium">ราคา</th>
+                <th className="text-left py-2 px-3 text-slate-600 font-medium">สถานะ</th>
+                <th className="text-left py-2 px-3 text-slate-600 font-medium w-20"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {products.length === 0 && !loading ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-slate-500">
+                    {error ? error : 'ยังไม่มีสินค้า — '}
+                    {!error && <Link to="/products/new" className="text-blue-600 hover:underline">เพิ่มสินค้า</Link>}
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                products.map((p) => (
+                  <tr key={p.id} className="border-b border-slate-100 hover:bg-slate-50 transition">
+                    <td className="py-3 px-4">
+                      {p.cover_image ? (
+                        <img src={imgUrl(p.cover_image)} alt="" className="w-12 h-12 object-cover rounded border border-slate-200" />
+                      ) : (
+                        <div className="w-12 h-12 bg-slate-200 rounded flex items-center justify-center text-slate-400 text-xs border border-slate-300">
+                          ไม่มีรูป
+                        </div>
+                      )}
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="font-medium text-slate-800">{p.name_lo || p.name_en}</div>
+                      {(p.name_lo && p.name_en) && (
+                        <div className="text-xs text-slate-500 mt-0.5">{p.name_en}</div>
+                      )}
+                    </td>
+                    <td className="py-3 px-4">
+                      <code className="text-xs text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded">{p.slug}</code>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="font-semibold text-slate-800">৳{p.price.toLocaleString()}</span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        p.status === 'published' 
+                          ? 'bg-green-100 text-green-700' 
+                          : 'bg-slate-100 text-slate-600'
+                      }`}>
+                        {p.status === 'published' ? 'เผยแพร่' : 'แบบร่าง'}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <Link to={`/products/${p.id}`} className="text-blue-600 hover:text-blue-700 hover:underline text-sm font-medium">
+                        แก้ไข →
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

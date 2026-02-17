@@ -80,14 +80,14 @@ export default function Orders() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 sm:mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">ออเดอร์</h1>
-          <p className="text-slate-500 mt-1">จัดการออเดอร์จากลูกค้า</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800">ออเดอร์</h1>
+          <p className="text-slate-500 mt-1 text-sm sm:text-base">จัดการออเดอร์จากลูกค้า</p>
         </div>
         <a
           href={`/api/admin/orders/export.csv${statusFilter ? `?status=${statusFilter}` : ''}`}
-          className="btn-secondary"
+          className="btn-secondary w-full sm:w-auto text-center"
           download
         >
           ส่งออก CSV
@@ -95,8 +95,8 @@ export default function Orders() {
       </div>
 
       {/* Filters */}
-      <div className="card-admin mb-6">
-        <div className="flex flex-wrap gap-3">
+      <div className="card-admin mb-4 sm:mb-6">
+        <div className="flex flex-col sm:flex-row gap-3">
           <input
             type="text"
             placeholder="ค้นหาชื่อ/เบอร์/สินค้า..."
@@ -105,7 +105,7 @@ export default function Orders() {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="input-admin flex-1 min-w-[200px]"
+            className="input-admin flex-1"
           />
           <select
             value={statusFilter}
@@ -113,7 +113,7 @@ export default function Orders() {
               setStatusFilter(e.target.value);
               setPage(1);
             }}
-            className="input-admin w-48"
+            className="input-admin w-full sm:w-48"
           >
             <option value="">ทุกสถานะ</option>
             <option value="new">ใหม่</option>
@@ -127,40 +127,40 @@ export default function Orders() {
       {/* Orders List */}
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
         {orders.length === 0 ? (
-          <div className="p-8 text-center text-slate-500">
+          <div className="p-6 sm:p-8 text-center text-slate-500">
             {search || statusFilter ? 'ไม่พบออเดอร์ที่ค้นหา' : 'ยังไม่มีออเดอร์'}
           </div>
         ) : (
           <div className="divide-y divide-slate-100">
             {orders.map((order) => (
-              <div key={order.id} className="p-5 hover:bg-slate-50 transition">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
+              <div key={order.id} className="p-4 sm:p-5 hover:bg-slate-50 transition">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
                         {getStatusLabel(order.status)}
                       </span>
-                      <span className="text-sm text-slate-500">
+                      <span className="text-xs sm:text-sm text-slate-500">
                         #{order.id} • {new Date(order.created_at).toLocaleString('th-TH')}
                       </span>
                     </div>
-                    <h3 className="font-semibold text-slate-800 mb-1">
+                    <h3 className="font-semibold text-slate-800 mb-2 text-sm sm:text-base">
                       {order.product_name_lo || order.product_name_en
                         ? `${order.product_name_lo || ''}${order.product_name_lo && order.product_name_en ? ' / ' : ''}${order.product_name_en || ''}`
                         : `สินค้า ID: ${order.product_id}`}
                     </h3>
-                    <div className="text-sm text-slate-600 space-y-1">
+                    <div className="text-xs sm:text-sm text-slate-600 space-y-1">
                       <p>
                         <span className="font-medium">ชื่อ:</span> {order.customer_name}
                       </p>
                       <p>
                         <span className="font-medium">เบอร์:</span>{' '}
-                        <a href={`tel:${order.customer_phone}`} className="text-blue-600 hover:underline">
+                        <a href={`tel:${order.customer_phone}`} className="text-blue-600 hover:underline break-all">
                           {order.customer_phone}
                         </a>
                       </p>
                       {order.customer_address && (
-                        <p>
+                        <p className="break-words">
                           <span className="font-medium">ที่อยู่:</span> {order.customer_address}
                         </p>
                       )}
@@ -168,13 +168,13 @@ export default function Orders() {
                         <span className="font-medium">จำนวน:</span> {order.qty} ชิ้น
                       </p>
                       {order.note && (
-                        <p>
+                        <p className="break-words">
                           <span className="font-medium">หมายเหตุ:</span> {order.note}
                         </p>
                       )}
                     </div>
                   </div>
-                  <div className="flex flex-col gap-2 shrink-0">
+                  <div className="flex flex-row sm:flex-col gap-2 shrink-0">
                     {order.status === 'new' && (
                       <>
                         <button
@@ -219,7 +219,7 @@ export default function Orders() {
                       </>
                     )}
                     {(order.status === 'done' || order.status === 'canceled') && (
-                      <span className="text-xs text-slate-400 text-center">ไม่สามารถเปลี่ยนสถานะได้</span>
+                      <span className="text-xs text-slate-400 text-center sm:text-left">ไม่สามารถเปลี่ยนสถานะได้</span>
                     )}
                   </div>
                 </div>
@@ -231,11 +231,11 @@ export default function Orders() {
 
       {/* Pagination */}
       {total > limit && (
-        <div className="flex items-center justify-between mt-4">
-          <p className="text-sm text-slate-500">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4">
+          <p className="text-xs sm:text-sm text-slate-500 text-center sm:text-left">
             แสดง {Math.min((page - 1) * limit + 1, total)}-{Math.min(page * limit, total)} จาก {total} ออเดอร์
           </p>
-          <div className="flex gap-2">
+          <div className="flex gap-2 justify-center sm:justify-end">
             <button
               type="button"
               onClick={() => setPage((p) => Math.max(1, p - 1))}

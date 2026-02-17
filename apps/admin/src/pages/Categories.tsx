@@ -95,10 +95,10 @@ export default function Categories() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-slate-800 mb-2">หมวดหมู่สินค้า</h1>
-      <p className="text-slate-500 mb-6">จัดกลุ่มสินค้าเพื่อให้ลูกค้าค้นหาง่ายขึ้น (ไม่บังคับ)</p>
+      <h1 className="text-xl sm:text-2xl font-bold text-slate-800 mb-2">หมวดหมู่สินค้า</h1>
+      <p className="text-slate-500 mb-4 sm:mb-6 text-sm sm:text-base">จัดกลุ่มสินค้าเพื่อให้ลูกค้าค้นหาง่ายขึ้น (ไม่บังคับ)</p>
 
-      <div className="max-w-2xl space-y-6">
+      <div className="max-w-2xl space-y-4 sm:space-y-6">
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
             {error}
@@ -111,7 +111,7 @@ export default function Categories() {
             {editing ? 'แก้ไขหมวดหมู่' : 'เพิ่มหมวดหมู่ใหม่'}
           </h2>
           <form onSubmit={editing ? (e) => { e.preventDefault(); handleEdit(editing); } : handleAdd} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">ชื่อ (ลาว)</label>
                 <input

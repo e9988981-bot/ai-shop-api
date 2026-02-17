@@ -62,16 +62,16 @@ export default function WaNumbers() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-slate-800 mb-2">เบอร์ WhatsApp</h1>
-      <p className="text-slate-500 mb-6">
+      <h1 className="text-xl sm:text-2xl font-bold text-slate-800 mb-2">เบอร์ WhatsApp</h1>
+      <p className="text-slate-500 mb-4 sm:mb-6 text-sm sm:text-base">
         เบอร์ที่ใช้รับออเดอร์จากลูกค้า (ลูกค้าสั่งแล้วจะได้ลิงก์แชร์ไปเบอร์ที่เลือก) — อย่างน้อย 1 เบอร์
       </p>
 
-      <div className="max-w-xl space-y-6">
+      <div className="max-w-xl space-y-4 sm:space-y-6">
         <div className="card-admin">
           <h2 className="font-semibold text-slate-800 mb-4">เพิ่มเบอร์</h2>
           <form onSubmit={handleAdd} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">ชื่อ (เช่น เบอร์หลัก)</label>
                 <input
@@ -113,31 +113,33 @@ export default function WaNumbers() {
           {items.length === 0 ? (
             <p className="text-slate-500 text-sm">ยังไม่มีเบอร์ — เพิ่มด้านบน</p>
           ) : (
-            <ul className="space-y-2">
+            <ul className="space-y-3">
               {items.map((item) => (
                 <li
                   key={item.id}
-                  className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0"
+                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-3 border-b border-slate-100 last:border-0"
                 >
-                  <span className="font-medium">{item.label}</span>
-                  <span className="text-slate-600 font-mono text-sm">{item.phone_e164}</span>
-                  <div className="flex gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-slate-800">{item.label}</div>
+                    <div className="text-slate-600 font-mono text-sm break-all">{item.phone_e164}</div>
+                  </div>
+                  <div className="flex flex-wrap gap-2 shrink-0">
                     {!item.is_default && (
                       <button
                         type="button"
                         onClick={() => setDefault(item.id)}
-                        className="text-sm px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200"
+                        className="text-xs sm:text-sm px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 whitespace-nowrap"
                       >
                         ตั้งเป็นค่าเริ่มต้น
                       </button>
                     )}
                     {item.is_default && (
-                      <span className="text-sm text-green-600 font-medium px-2">ค่าเริ่มต้น</span>
+                      <span className="text-xs sm:text-sm text-green-600 font-medium px-2 py-1.5">ค่าเริ่มต้น</span>
                     )}
                     <button
                       type="button"
                       onClick={() => remove(item.id)}
-                      className="text-sm px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100"
+                      className="text-xs sm:text-sm px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 whitespace-nowrap"
                     >
                       ลบ
                     </button>

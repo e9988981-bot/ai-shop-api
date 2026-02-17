@@ -607,6 +607,10 @@ async function handleAdmin(
   }
   // ใช้ shopId จาก session สำหรับ admin API (สำคัญ!)
   const actualShopId = auth?.shopId || shopId;
+  if (!actualShopId || actualShopId <= 0) {
+    console.error('Invalid shopId:', { authShopId: auth?.shopId, hostShopId: shopId, path, url: url.pathname });
+    return apiError('Invalid shop ID', 400);
+  }
 
   if (path === 'shop' && request.method === 'GET') {
     const row = await env.DB.prepare(
@@ -764,36 +768,45 @@ async function handleAdmin(
   }
 
   if (path === 'products' && request.method === 'GET') {
-    const page = Math.max(1, Number(url.searchParams.get('page')) || 1);
-    const limit = Math.min(50, Math.max(1, Number(url.searchParams.get('limit')) || 20));
-    const offset = (page - 1) * limit;
-    const status = url.searchParams.get('status');
-    const categoryId = url.searchParams.get('category_id');
-    let q = 'FROM products WHERE shop_id = ?';
-    const args: (string | number)[] = [actualShopId];
-    if (status) { q += ' AND status = ?'; args.push(status); }
-    if (categoryId) { q += ' AND category_id = ?'; args.push(Number(categoryId)); }
-    const countRow = await env.DB.prepare(`SELECT COUNT(*) as c ${q}`).bind(...args).first<{ c: number }>();
-    const total = countRow?.c ?? 0;
-    const { results } = await env.DB.prepare(
-      `SELECT p.*, c.name_lo as cat_name_lo, c.name_en as cat_name_en ${q}
-       ORDER BY p.updated_at DESC LIMIT ? OFFSET ?`
-    )
-      .bind(...args, limit, offset)
-      .all();
-    const products = results as Record<string, unknown>[];
-    const withCover = await Promise.all(
-      products.map(async (p) => {
-        if (p.cover_image_id) {
-          const img = await env.DB.prepare('SELECT r2_key FROM product_images WHERE id = ? AND shop_id = ?')
-            .bind(p.cover_image_id, actualShopId)
-            .first();
-          return { ...p, cover_image: (img as Record<string, unknown>)?.r2_key || null };
-        }
-        return { ...p, cover_image: null };
-      })
-    );
-    return apiSuccess({ items: withCover, total, page, limit });
+    try {
+      if (!actualShopId || actualShopId <= 0) {
+        return apiError('Invalid shop ID', 400);
+      }
+      const page = Math.max(1, Number(url.searchParams.get('page')) || 1);
+      const limit = Math.min(50, Math.max(1, Number(url.searchParams.get('limit')) || 20));
+      const offset = (page - 1) * limit;
+      const status = url.searchParams.get('status');
+      const categoryId = url.searchParams.get('category_id');
+      let q = 'FROM products WHERE shop_id = ?';
+      const args: (string | number)[] = [actualShopId];
+      if (status) { q += ' AND status = ?'; args.push(status); }
+      if (categoryId) { q += ' AND category_id = ?'; args.push(Number(categoryId)); }
+      const countRow = await env.DB.prepare(`SELECT COUNT(*) as c ${q}`).bind(...args).first<{ c: number }>();
+      const total = countRow?.c ?? 0;
+      const { results } = await env.DB.prepare(
+        `SELECT p.*, c.name_lo as cat_name_lo, c.name_en as cat_name_en ${q}
+         ORDER BY p.updated_at DESC LIMIT ? OFFSET ?`
+      )
+        .bind(...args, limit, offset)
+        .all();
+      const products = results as Record<string, unknown>[];
+      const withCover = await Promise.all(
+        products.map(async (p) => {
+          if (p.cover_image_id) {
+            const img = await env.DB.prepare('SELECT r2_key FROM product_images WHERE id = ? AND shop_id = ?')
+              .bind(p.cover_image_id, actualShopId)
+              .first();
+            return { ...p, cover_image: (img as Record<string, unknown>)?.r2_key || null };
+          }
+          return { ...p, cover_image: null };
+        })
+      );
+      return apiSuccess({ items: withCover, total, page, limit });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error('Error in GET /api/admin/products:', msg, e);
+      return apiError('Failed to load products: ' + msg, 500);
+    }
   }
 
   if (path === 'products' && request.method === 'POST') {

@@ -183,12 +183,12 @@ export default function ProductEdit() {
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-6">
-        <Link to="/products" className="text-slate-500 hover:text-slate-700">← สินค้า</Link>
-        <h1 className="text-2xl font-bold text-slate-800">แก้ไขสินค้า</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-4 sm:mb-6">
+        <Link to="/products" className="text-slate-500 hover:text-slate-700 text-sm sm:text-base">← สินค้า</Link>
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-800">แก้ไขสินค้า</h1>
       </div>
 
-      <div className="max-w-2xl space-y-6">
+      <div className="max-w-2xl space-y-4 sm:space-y-6">
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
             {error}
@@ -213,7 +213,7 @@ export default function ProductEdit() {
                 placeholder="product-name"
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm text-slate-600 mb-1">ชื่อ (ลาว)</label>
                 <input
@@ -303,7 +303,7 @@ export default function ProductEdit() {
           <p className="text-sm text-slate-500 mb-3">รูปแรกที่แสดงบนหน้าร้านจะใช้เป็นรูปปก (cover) — กด «ตั้งเป็นรูปปก» ได้</p>
           <div className="flex flex-wrap gap-3">
             {images.map((img, idx) => (
-              <div key={img.id} className="relative group border border-slate-200 rounded-lg overflow-hidden w-24 h-24 flex-shrink-0">
+              <div key={img.id} className="relative group border border-slate-200 rounded-lg overflow-hidden w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0">
                 <img src={imgUrl(img.r2_key)} alt="" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-1 transition-opacity">
                   {product.cover_image_id !== img.id && (
@@ -346,7 +346,7 @@ export default function ProductEdit() {
                 </div>
               </div>
             ))}
-            <div className="w-24 h-24 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center flex-shrink-0">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center flex-shrink-0">
               <input
                 ref={fileInputRef}
                 type="file"
@@ -362,7 +362,7 @@ export default function ProductEdit() {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
-                className="text-slate-500 hover:text-slate-700 text-sm disabled:opacity-50"
+                className="text-slate-500 hover:text-slate-700 text-xs sm:text-sm disabled:opacity-50 text-center px-2"
               >
                 {uploading ? 'กำลังอัปโหลด...' : '+ เพิ่มรูป'}
               </button>

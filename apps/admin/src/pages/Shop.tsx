@@ -73,10 +73,10 @@ export default function Shop() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-slate-800 mb-2">ตั้งค่าข้อมูลร้าน</h1>
-      <p className="text-slate-500 mb-6">ชื่อร้าน, รูป, สี และข้อความ template สำหรับ WhatsApp</p>
+      <h1 className="text-xl sm:text-2xl font-bold text-slate-800 mb-2">ตั้งค่าข้อมูลร้าน</h1>
+      <p className="text-slate-500 mb-4 sm:mb-6 text-sm sm:text-base">ชื่อร้าน, รูป, สี และข้อความ template สำหรับ WhatsApp</p>
 
-      <div className="max-w-2xl space-y-6">
+      <div className="max-w-2xl space-y-4 sm:space-y-6">
         {/* รูปโปรไฟล์ / หน้าปก */}
         <div className="card-admin">
           <h2 className="font-semibold text-slate-800 mb-4">รูปภาพ</h2>
@@ -153,7 +153,7 @@ export default function Shop() {
         {/* ชื่อร้าน */}
         <div className="card-admin">
           <h2 className="font-semibold text-slate-800 mb-4">ชื่อร้าน</h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">ชื่อ (ลาว)</label>
               <input
@@ -186,7 +186,7 @@ export default function Shop() {
         {/* สี */}
         <div className="card-admin">
           <h2 className="font-semibold text-slate-800 mb-4">สีประจำร้าน</h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">สีหลัก</label>
               <input
