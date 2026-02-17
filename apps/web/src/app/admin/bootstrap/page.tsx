@@ -17,6 +17,18 @@ function getDefaultDomain(): string {
   return window.location.hostname;
 }
 
+/** Send hostname only (API looks up shop by Host header). */
+function toHostname(value: string): string {
+  const s = value.trim().replace(/\/+$/, '');
+  if (!s) return s;
+  try {
+    const url = s.startsWith('http://') || s.startsWith('https://') ? new URL(s) : new URL('https://' + s);
+    return url.hostname;
+  } catch {
+    return s.toLowerCase();
+  }
+}
+
 export default function BootstrapPage() {
   const router = useRouter();
   const [form, setForm] = useState({
@@ -37,7 +49,8 @@ export default function BootstrapPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
-    const res = await apiPost<{ shopId: number }>('/api/admin/bootstrap', form);
+    const payload = { ...form, domain: toHostname(form.domain) || form.domain };
+    const res = await apiPost<{ shopId: number }>('/api/admin/bootstrap', payload);
     setLoading(false);
     if (res.ok) {
       router.replace('/admin/login');

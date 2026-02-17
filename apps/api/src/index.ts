@@ -17,6 +17,18 @@ function normalizeHost(host: string): string {
   return host.toLowerCase().replace(/:\d+$/, '');
 }
 
+/** Extract hostname only (for bootstrap domain field). Accepts full URL or hostname. */
+function normalizeDomain(input: string): string {
+  const s = input.trim().toLowerCase().replace(/\/+$/, '').replace(/:\d+$/, '');
+  if (!s) return s;
+  try {
+    const url = s.startsWith('http://') || s.startsWith('https://') ? new URL(s) : new URL('https://' + s);
+    return url.hostname;
+  } catch {
+    return s;
+  }
+}
+
 function json<T>(data: T, init?: ResponseInit): Response {
   return new Response(JSON.stringify(data), {
     headers: { 'Content-Type': 'application/json', ...init?.headers },
@@ -507,7 +519,8 @@ async function handleAdmin(
       return apiError(parsed.error.errors.map((e) => e.message).join(', '), 400);
     }
     const d = parsed.data;
-    const domain = d.domain.toLowerCase().replace(/:\d+$/, '');
+    const domain = normalizeDomain(d.domain);
+    if (!domain) return apiError('Invalid domain', 400);
     const existing = await env.DB.prepare('SELECT id FROM shops WHERE domain = ?').bind(domain).first();
     if (existing) return apiError('Domain already exists', 400);
     const hash = await hashPassword(d.password);
