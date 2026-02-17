@@ -22,23 +22,34 @@ export default function Products() {
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const [error, setError] = useState<string>('');
 
   useEffect(() => {
     load();
   }, [statusFilter]);
 
   const load = () => {
+    setError('');
     const params = new URLSearchParams({ page: '1', limit: '100' });
     if (statusFilter) params.append('status', statusFilter);
     apiGet<{ items: Product[]; total: number }>(`/api/admin/products?${params}`).then((res) => {
       if (res.ok && res.data) {
         setProducts(res.data.items || []);
         setTotal(res.data.total ?? 0);
+        if (res.data.total === 0 && !statusFilter) {
+          setError('ยังไม่มีสินค้าในระบบ — กด "เพิ่มสินค้า" เพื่อสร้างสินค้าแรก');
+        }
       } else {
-        console.error('Failed to load products:', res.error);
+        const errMsg = res.error || 'ไม่สามารถโหลดรายการสินค้าได้';
+        console.error('Failed to load products:', res.error, res.status);
+        setError(errMsg);
         setProducts([]);
         setTotal(0);
       }
+      setLoading(false);
+    }).catch((e) => {
+      console.error('Error loading products:', e);
+      setError('เกิดข้อผิดพลาดในการโหลดข้อมูล');
       setLoading(false);
     });
   };
@@ -79,6 +90,22 @@ export default function Products() {
       </div>
       
       <p className="text-slate-500 mb-4">คลิกที่สินค้าเพื่อแก้ไขข้อมูลและจัดการรูปภาพ</p>
+      
+      {error && (
+        <div className={`mb-4 px-4 py-3 rounded-xl text-sm ${
+          error.includes('ยังไม่มี') 
+            ? 'bg-blue-50 border border-blue-200 text-blue-700' 
+            : 'bg-red-50 border border-red-200 text-red-700'
+        }`}>
+          {error}
+          {error.includes('ยังไม่มี') && (
+            <div className="mt-2">
+              <Link to="/products/new" className="text-blue-600 hover:underline font-medium">→ เพิ่มสินค้า</Link>
+            </div>
+          )}
+        </div>
+      )}
+      
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
         <table className="w-full">
           <thead className="bg-slate-50 border-b border-slate-200">
@@ -92,10 +119,11 @@ export default function Products() {
             </tr>
           </thead>
           <tbody>
-            {products.length === 0 ? (
+            {products.length === 0 && !loading ? (
               <tr>
                 <td colSpan={6} className="py-8 text-center text-slate-500">
-                  ยังไม่มีสินค้า — <Link to="/products/new" className="text-blue-600 hover:underline">เพิ่มสินค้า</Link>
+                  {error ? error : 'ยังไม่มีสินค้า — '}
+                  {!error && <Link to="/products/new" className="text-blue-600 hover:underline">เพิ่มสินค้า</Link>}
                 </td>
               </tr>
             ) : (

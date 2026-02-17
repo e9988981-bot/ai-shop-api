@@ -539,14 +539,16 @@ async function handleAuth(
   return apiError('Not found', 404);
 }
 
-async function requireAuth(request: Request, env: Env, shopId: number): Promise<{ userId: number } | null> {
+async function requireAuth(request: Request, env: Env, shopId: number): Promise<{ userId: number; shopId: number } | null> {
   const cookie = request.headers.get('Cookie') || '';
   const match = cookie.match(new RegExp(`${SESSION_COOKIE}=([^;]+)`));
   const token = match ? match[1] : null;
   if (!token) return null;
   const sess = await verifySession(env, token);
-  if (!sess || sess.shopId !== shopId) return null;
-  return { userId: sess.userId };
+  if (!sess) return null;
+  // สำหรับ admin API: ใช้ shopId จาก session เท่านั้น (ไม่เช็คกับ host header)
+  // เพราะ admin อาจเปิดจาก domain อื่น (Pages) แต่ session มี shopId ถูกต้องแล้ว
+  return { userId: sess.userId, shopId: sess.shopId };
 }
 
 async function handleAdmin(
@@ -603,6 +605,8 @@ async function handleAdmin(
   if (!auth && path !== 'bootstrap') {
     return apiError('Unauthorized', 401);
   }
+  // ใช้ shopId จาก session สำหรับ admin API (สำคัญ!)
+  const actualShopId = auth?.shopId || shopId;
 
   if (path === 'shop' && request.method === 'GET') {
     const row = await env.DB.prepare(
@@ -632,13 +636,13 @@ async function handleAdmin(
     if (d.theme_secondary !== undefined) { updates.push('theme_secondary = ?'); vals.push(d.theme_secondary); }
     if (d.wa_template !== undefined) { updates.push('wa_template = ?'); vals.push(d.wa_template); }
     if (updates.length) {
-      vals.push(shopId);
+      vals.push(actualShopId);
       await env.DB.prepare(`UPDATE shops SET ${updates.join(', ')} WHERE id = ?`).bind(...vals).run();
     }
     const row = await env.DB.prepare(
       'SELECT id, domain, name_lo, name_en, desc_lo, desc_en, avatar_key, cover_key, theme_primary, theme_secondary, wa_template FROM shops WHERE id = ?'
     )
-      .bind(shopId)
+      .bind(actualShopId)
       .first();
     return apiSuccess(row);
   }
@@ -647,7 +651,7 @@ async function handleAdmin(
     const rows = await env.DB.prepare(
       'SELECT id, shop_id, label, phone_e164, is_default, is_active, created_at FROM wa_numbers WHERE shop_id = ? ORDER BY is_default DESC, id'
     )
-      .bind(shopId)
+      .bind(actualShopId)
       .all();
     const list = (rows.results as Record<string, unknown>[]).map((r) => ({
       ...r,
@@ -664,12 +668,12 @@ async function handleAdmin(
     if (!parsed.success) return apiError(parsed.error.message, 400);
     const d = parsed.data;
     if (d.is_default) {
-      await env.DB.prepare('UPDATE wa_numbers SET is_default = 0 WHERE shop_id = ?').bind(shopId).run();
+      await env.DB.prepare('UPDATE wa_numbers SET is_default = 0 WHERE shop_id = ?').bind(actualShopId).run();
     }
     const result = await env.DB.prepare(
       'INSERT INTO wa_numbers (shop_id, label, phone_e164, is_default, is_active) VALUES (?, ?, ?, ?, ?)'
     )
-      .bind(shopId, d.label, d.phone_e164, d.is_default ? 1 : 0, d.is_active !== false ? 1 : 0)
+      .bind(actualShopId, d.label, d.phone_e164, d.is_default ? 1 : 0, d.is_active !== false ? 1 : 0)
       .run();
     const row = await env.DB.prepare('SELECT * FROM wa_numbers WHERE id = ?').bind(result.meta.last_row_id).first();
     return apiSuccess(row);
@@ -685,7 +689,7 @@ async function handleAdmin(
       if (!parsed.success) return apiError(parsed.error.message, 400);
       const d = parsed.data;
       if (d.is_default) {
-        await env.DB.prepare('UPDATE wa_numbers SET is_default = 0 WHERE shop_id = ?').bind(shopId).run();
+        await env.DB.prepare('UPDATE wa_numbers SET is_default = 0 WHERE shop_id = ?').bind(actualShopId).run();
       }
       const updates: string[] = [];
       const vals: unknown[] = [];
@@ -694,14 +698,14 @@ async function handleAdmin(
       if (d.is_default !== undefined) { updates.push('is_default = ?'); vals.push(d.is_default ? 1 : 0); }
       if (d.is_active !== undefined) { updates.push('is_active = ?'); vals.push(d.is_active ? 1 : 0); }
       if (updates.length) {
-        vals.push(id, shopId);
+        vals.push(id, actualShopId);
         await env.DB.prepare(`UPDATE wa_numbers SET ${updates.join(', ')} WHERE id = ? AND shop_id = ?`).bind(...vals).run();
       }
-      const row = await env.DB.prepare('SELECT * FROM wa_numbers WHERE id = ? AND shop_id = ?').bind(id, shopId).first();
+      const row = await env.DB.prepare('SELECT * FROM wa_numbers WHERE id = ? AND shop_id = ?').bind(id, actualShopId).first();
       return apiSuccess(row);
     }
     if (request.method === 'DELETE') {
-      await env.DB.prepare('DELETE FROM wa_numbers WHERE id = ? AND shop_id = ?').bind(id, shopId).run();
+      await env.DB.prepare('DELETE FROM wa_numbers WHERE id = ? AND shop_id = ?').bind(id, actualShopId).run();
       return apiSuccess({});
     }
   }
@@ -710,7 +714,7 @@ async function handleAdmin(
     const rows = await env.DB.prepare(
       'SELECT id, shop_id, name_lo, name_en, sort_order FROM categories WHERE shop_id = ? ORDER BY sort_order, id'
     )
-      .bind(shopId)
+      .bind(actualShopId)
       .all();
     return apiSuccess(rows.results);
   }
@@ -721,11 +725,11 @@ async function handleAdmin(
     const parsed = categorySchema.safeParse(body);
     if (!parsed.success) return apiError(parsed.error.message, 400);
     const d = parsed.data;
-    const sortOrder = d.sort_order ?? (await env.DB.prepare('SELECT COALESCE(MAX(sort_order), -1) + 1 as next FROM categories WHERE shop_id = ?').bind(shopId).first<{ next: number }>())?.next ?? 0;
+    const sortOrder = d.sort_order ?? (await env.DB.prepare('SELECT COALESCE(MAX(sort_order), -1) + 1 as next FROM categories WHERE shop_id = ?').bind(actualShopId).first<{ next: number }>())?.next ?? 0;
     const result = await env.DB.prepare(
       'INSERT INTO categories (shop_id, name_lo, name_en, sort_order) VALUES (?, ?, ?, ?)'
     )
-      .bind(shopId, d.name_lo, d.name_en, sortOrder)
+      .bind(actualShopId, d.name_lo, d.name_en, sortOrder)
       .run();
     const row = await env.DB.prepare('SELECT * FROM categories WHERE id = ?').bind(result.meta.last_row_id).first();
     return apiSuccess(row);
@@ -746,15 +750,15 @@ async function handleAdmin(
       if (d.name_en !== undefined) { updates.push('name_en = ?'); vals.push(d.name_en); }
       if (d.sort_order !== undefined) { updates.push('sort_order = ?'); vals.push(d.sort_order); }
       if (updates.length) {
-        vals.push(id, shopId);
+        vals.push(id, actualShopId);
         await env.DB.prepare(`UPDATE categories SET ${updates.join(', ')} WHERE id = ? AND shop_id = ?`).bind(...vals).run();
       }
-      const row = await env.DB.prepare('SELECT * FROM categories WHERE id = ? AND shop_id = ?').bind(id, shopId).first();
+      const row = await env.DB.prepare('SELECT * FROM categories WHERE id = ? AND shop_id = ?').bind(id, actualShopId).first();
       return apiSuccess(row);
     }
     if (request.method === 'DELETE') {
-      await env.DB.prepare('UPDATE products SET category_id = NULL WHERE category_id = ? AND shop_id = ?').bind(id, shopId).run();
-      await env.DB.prepare('DELETE FROM categories WHERE id = ? AND shop_id = ?').bind(id, shopId).run();
+      await env.DB.prepare('UPDATE products SET category_id = NULL WHERE category_id = ? AND shop_id = ?').bind(id, actualShopId).run();
+      await env.DB.prepare('DELETE FROM categories WHERE id = ? AND shop_id = ?').bind(id, actualShopId).run();
       return apiSuccess({});
     }
   }
@@ -766,7 +770,7 @@ async function handleAdmin(
     const status = url.searchParams.get('status');
     const categoryId = url.searchParams.get('category_id');
     let q = 'FROM products WHERE shop_id = ?';
-    const args: (string | number)[] = [shopId];
+    const args: (string | number)[] = [actualShopId];
     if (status) { q += ' AND status = ?'; args.push(status); }
     if (categoryId) { q += ' AND category_id = ?'; args.push(Number(categoryId)); }
     const countRow = await env.DB.prepare(`SELECT COUNT(*) as c ${q}`).bind(...args).first<{ c: number }>();
@@ -782,7 +786,7 @@ async function handleAdmin(
       products.map(async (p) => {
         if (p.cover_image_id) {
           const img = await env.DB.prepare('SELECT r2_key FROM product_images WHERE id = ? AND shop_id = ?')
-            .bind(p.cover_image_id, shopId)
+            .bind(p.cover_image_id, actualShopId)
             .first();
           return { ...p, cover_image: (img as Record<string, unknown>)?.r2_key || null };
         }
@@ -798,13 +802,13 @@ async function handleAdmin(
     const parsed = productSchema.safeParse(body);
     if (!parsed.success) return apiError(parsed.error.message, 400);
     const d = parsed.data;
-    const existing = await env.DB.prepare('SELECT id FROM products WHERE shop_id = ? AND slug = ?').bind(shopId, d.slug).first();
+    const existing = await env.DB.prepare('SELECT id FROM products WHERE shop_id = ? AND slug = ?').bind(actualShopId, d.slug).first();
     if (existing) return apiError('Slug already exists', 400);
     const result = await env.DB.prepare(
       'INSERT INTO products (shop_id, category_id, slug, name_lo, name_en, desc_lo, desc_en, price, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
       .bind(
-        shopId,
+        actualShopId,
         d.category_id ?? null,
         d.slug,
         d.name_lo,
@@ -823,13 +827,13 @@ async function handleAdmin(
   if (productIdMatch) {
     const id = Number(productIdMatch[1]);
     if (request.method === 'GET') {
-      const product = await env.DB.prepare('SELECT * FROM products WHERE id = ? AND shop_id = ?').bind(id, shopId).first();
+      const product = await env.DB.prepare('SELECT * FROM products WHERE id = ? AND shop_id = ?').bind(id, actualShopId).first();
       if (!product) return apiError('Product not found', 404);
       const images = await env.DB.prepare('SELECT * FROM product_images WHERE product_id = ? AND shop_id = ? ORDER BY sort_order')
-        .bind(id, shopId)
+        .bind(id, actualShopId)
         .all();
       const groups = await env.DB.prepare('SELECT * FROM option_groups WHERE product_id = ? AND shop_id = ? ORDER BY sort_order')
-        .bind(id, shopId)
+        .bind(id, actualShopId)
         .all();
       const gids = (groups.results as { id: number }[]).map((g) => g.id);
       let vals: { group_id: number }[] = [];
@@ -837,7 +841,7 @@ async function handleAdmin(
         const v = await env.DB.prepare(
           `SELECT * FROM option_values WHERE group_id IN (${gids.join(',')}) AND shop_id = ? ORDER BY group_id, sort_order`
         )
-          .bind(shopId)
+          .bind(actualShopId)
           .all();
         vals = v.results as { group_id: number }[];
       }
@@ -870,16 +874,16 @@ async function handleAdmin(
       if (d.status !== undefined) { updates.push('status = ?'); vals.push(d.status); }
       if (d.cover_image_id !== undefined) { updates.push('cover_image_id = ?'); vals.push(d.cover_image_id); }
       updates.push('updated_at = datetime("now")');
-      vals.push(id, shopId);
+      vals.push(id, actualShopId);
       await env.DB.prepare(`UPDATE products SET ${updates.join(', ')} WHERE id = ? AND shop_id = ?`).bind(...vals).run();
-      const row = await env.DB.prepare('SELECT * FROM products WHERE id = ? AND shop_id = ?').bind(id, shopId).first();
+      const row = await env.DB.prepare('SELECT * FROM products WHERE id = ? AND shop_id = ?').bind(id, actualShopId).first();
       return apiSuccess(row);
     }
     if (request.method === 'DELETE') {
-      await env.DB.prepare('DELETE FROM product_images WHERE product_id = ? AND shop_id = ?').bind(id, shopId).run();
-      await env.DB.prepare('DELETE FROM option_values WHERE group_id IN (SELECT id FROM option_groups WHERE product_id = ? AND shop_id = ?)').bind(id, shopId).run();
-      await env.DB.prepare('DELETE FROM option_groups WHERE product_id = ? AND shop_id = ?').bind(id, shopId).run();
-      await env.DB.prepare('DELETE FROM products WHERE id = ? AND shop_id = ?').bind(id, shopId).run();
+      await env.DB.prepare('DELETE FROM product_images WHERE product_id = ? AND shop_id = ?').bind(id, actualShopId).run();
+      await env.DB.prepare('DELETE FROM option_values WHERE group_id IN (SELECT id FROM option_groups WHERE product_id = ? AND shop_id = ?)').bind(id, actualShopId).run();
+      await env.DB.prepare('DELETE FROM option_groups WHERE product_id = ? AND shop_id = ?').bind(id, actualShopId).run();
+      await env.DB.prepare('DELETE FROM products WHERE id = ? AND shop_id = ?').bind(id, actualShopId).run();
       return apiSuccess({});
     }
   }
@@ -893,18 +897,18 @@ async function handleAdmin(
     if (!parsed.success) return apiError(parsed.error.message, 400);
     const { r2_key } = parsed.data;
     const maxSort = await env.DB.prepare('SELECT COALESCE(MAX(sort_order), -1) + 1 as next FROM product_images WHERE product_id = ? AND shop_id = ?')
-      .bind(productId, shopId)
+      .bind(productId, actualShopId)
       .first<{ next: number }>();
     const result = await env.DB.prepare(
       'INSERT INTO product_images (shop_id, product_id, r2_key, sort_order) VALUES (?, ?, ?, ?)'
     )
-      .bind(shopId, productId, r2_key, maxSort?.next ?? 0)
+      .bind(actualShopId, productId, r2_key, maxSort?.next ?? 0)
       .run();
     const imgId = result.meta.last_row_id;
     // ถ้ายังไม่มี cover_image_id ให้ set รูปแรกเป็น cover อัตโนมัติ
-    const product = await env.DB.prepare('SELECT cover_image_id FROM products WHERE id = ? AND shop_id = ?').bind(productId, shopId).first<{ cover_image_id: number | null }>();
+    const product = await env.DB.prepare('SELECT cover_image_id FROM products WHERE id = ? AND shop_id = ?').bind(productId, actualShopId).first<{ cover_image_id: number | null }>();
     if (!product?.cover_image_id) {
-      await env.DB.prepare('UPDATE products SET cover_image_id = ? WHERE id = ? AND shop_id = ?').bind(imgId, productId, shopId).run();
+      await env.DB.prepare('UPDATE products SET cover_image_id = ? WHERE id = ? AND shop_id = ?').bind(imgId, productId, actualShopId).run();
     }
     const row = await env.DB.prepare('SELECT * FROM product_images WHERE id = ?').bind(imgId).first();
     return apiSuccess(row);
@@ -919,19 +923,19 @@ async function handleAdmin(
     if (!parsed.success) return apiError(parsed.error.message, 400);
     for (let i = 0; i < parsed.data.image_ids.length; i++) {
       await env.DB.prepare('UPDATE product_images SET sort_order = ? WHERE id = ? AND product_id = ? AND shop_id = ?')
-        .bind(i, parsed.data.image_ids[i], productId, shopId)
+        .bind(i, parsed.data.image_ids[i], productId, actualShopId)
         .run();
     }
     const rows = await env.DB.prepare('SELECT * FROM product_images WHERE product_id = ? AND shop_id = ? ORDER BY sort_order')
-      .bind(productId, shopId)
+      .bind(productId, actualShopId)
       .all();
     return apiSuccess(rows.results);
   }
 
   if (path.startsWith('product-images/') && request.method === 'DELETE') {
     const imgId = Number(path.replace('product-images/', '').replace(/\/$/, ''));
-    await env.DB.prepare('UPDATE products SET cover_image_id = NULL WHERE cover_image_id = ? AND shop_id = ?').bind(imgId, shopId).run();
-    await env.DB.prepare('DELETE FROM product_images WHERE id = ? AND shop_id = ?').bind(imgId, shopId).run();
+    await env.DB.prepare('UPDATE products SET cover_image_id = NULL WHERE cover_image_id = ? AND shop_id = ?').bind(imgId, actualShopId).run();
+    await env.DB.prepare('DELETE FROM product_images WHERE id = ? AND shop_id = ?').bind(imgId, actualShopId).run();
     return apiSuccess({});
   }
 
@@ -940,7 +944,7 @@ async function handleAdmin(
     const productId = Number(productOptionsMatch[1]);
     if (request.method === 'GET') {
       const groups = await env.DB.prepare('SELECT * FROM option_groups WHERE product_id = ? AND shop_id = ? ORDER BY sort_order')
-        .bind(productId, shopId)
+        .bind(productId, actualShopId)
         .all();
       const gids = (groups.results as { id: number }[]).map((g) => g.id);
       let vals: { group_id: number }[] = [];
@@ -967,12 +971,12 @@ async function handleAdmin(
       if (!groupParsed.success) return apiError(groupParsed.error.message, 400);
       const g = groupParsed.data;
       const maxSort = await env.DB.prepare('SELECT COALESCE(MAX(sort_order), -1) + 1 as next FROM option_groups WHERE product_id = ? AND shop_id = ?')
-        .bind(productId, shopId)
+        .bind(productId, actualShopId)
         .first<{ next: number }>();
       const gResult = await env.DB.prepare(
         'INSERT INTO option_groups (shop_id, product_id, name_lo, name_en, is_required, sort_order) VALUES (?, ?, ?, ?, ?, ?)'
       )
-        .bind(shopId, productId, g.name_lo, g.name_en, g.is_required ? 1 : 0, g.sort_order ?? maxSort?.next ?? 0)
+        .bind(actualShopId, productId, g.name_lo, g.name_en, g.is_required ? 1 : 0, g.sort_order ?? maxSort?.next ?? 0)
         .run();
       const groupId = gResult.meta.last_row_id;
       if (valueParsed.success && valueParsed.data.length) {
@@ -981,13 +985,13 @@ async function handleAdmin(
           await env.DB.prepare(
             'INSERT INTO option_values (shop_id, group_id, value_lo, value_en, sort_order) VALUES (?, ?, ?, ?, ?)'
           )
-            .bind(shopId, groupId, v.value_lo, v.value_en, v.sort_order ?? i)
+            .bind(actualShopId, groupId, v.value_lo, v.value_en, v.sort_order ?? i)
             .run();
         }
       }
       const row = await env.DB.prepare('SELECT * FROM option_groups WHERE id = ?').bind(groupId).first();
       const vals = await env.DB.prepare('SELECT * FROM option_values WHERE group_id = ? AND shop_id = ? ORDER BY sort_order')
-        .bind(groupId, shopId)
+        .bind(groupId, actualShopId)
         .all();
       return apiSuccess({ ...(row as Record<string, unknown>), values: vals.results });
     }
@@ -1009,33 +1013,33 @@ async function handleAdmin(
         if (g.is_required !== undefined) { updates.push('is_required = ?'); vals.push(g.is_required ? 1 : 0); }
         if (g.sort_order !== undefined) { updates.push('sort_order = ?'); vals.push(g.sort_order); }
         if (updates.length) {
-          vals.push(groupId, shopId);
+          vals.push(groupId, actualShopId);
           await env.DB.prepare(`UPDATE option_groups SET ${updates.join(', ')} WHERE id = ? AND shop_id = ?`).bind(...vals).run();
         }
       }
       if (body.values && Array.isArray(body.values)) {
         const vParsed = optionValueSchema.array().safeParse(body.values);
         if (vParsed.success) {
-          await env.DB.prepare('DELETE FROM option_values WHERE group_id = ? AND shop_id = ?').bind(groupId, shopId).run();
+          await env.DB.prepare('DELETE FROM option_values WHERE group_id = ? AND shop_id = ?').bind(groupId, actualShopId).run();
           for (let i = 0; i < vParsed.data.length; i++) {
             const v = vParsed.data[i];
             await env.DB.prepare(
               'INSERT INTO option_values (shop_id, group_id, value_lo, value_en, sort_order) VALUES (?, ?, ?, ?, ?)'
             )
-              .bind(shopId, groupId, v.value_lo, v.value_en, v.sort_order ?? i)
+              .bind(actualShopId, groupId, v.value_lo, v.value_en, v.sort_order ?? i)
               .run();
           }
         }
       }
-      const row = await env.DB.prepare('SELECT * FROM option_groups WHERE id = ? AND shop_id = ?').bind(groupId, shopId).first();
+      const row = await env.DB.prepare('SELECT * FROM option_groups WHERE id = ? AND shop_id = ?').bind(groupId, actualShopId).first();
       const vals = await env.DB.prepare('SELECT * FROM option_values WHERE group_id = ? AND shop_id = ? ORDER BY sort_order')
-        .bind(groupId, shopId)
+        .bind(groupId, actualShopId)
         .all();
       return apiSuccess({ ...(row as Record<string, unknown>), values: vals.results });
     }
     if (request.method === 'DELETE') {
-      await env.DB.prepare('DELETE FROM option_values WHERE group_id = ? AND shop_id = ?').bind(groupId, shopId).run();
-      await env.DB.prepare('DELETE FROM option_groups WHERE id = ? AND shop_id = ?').bind(groupId, shopId).run();
+      await env.DB.prepare('DELETE FROM option_values WHERE group_id = ? AND shop_id = ?').bind(groupId, actualShopId).run();
+      await env.DB.prepare('DELETE FROM option_groups WHERE id = ? AND shop_id = ?').bind(groupId, actualShopId).run();
       return apiSuccess({});
     }
   }
@@ -1043,7 +1047,7 @@ async function handleAdmin(
   if (path === 'uploads/sign' && request.method === 'POST') {
     const body = await request.json().catch(() => ({}));
     const ext = (body.ext as string) || 'jpg';
-    const key = `uploads/${shopId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const key = `uploads/${actualShopId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
     const uploadUrl = `${url.origin}/api/admin/uploads/put?key=${encodeURIComponent(key)}`;
     const publicUrl = `${url.origin}/api/public/images/${encodeURIComponent(key)}`;
     return apiSuccess({ uploadUrl, r2Key: key, publicUrl });
@@ -1051,7 +1055,7 @@ async function handleAdmin(
 
   if (path === 'uploads/put' && request.method === 'PUT') {
     const key = url.searchParams.get('key');
-    if (!key || !key.startsWith(`uploads/${shopId}/`)) return apiError('Invalid key', 400);
+    if (!key || !key.startsWith(`uploads/${actualShopId}/`)) return apiError('Invalid key', 400);
     const arr = await request.arrayBuffer();
     await env.BUCKET.put(key, arr, {
       httpMetadata: { contentType: request.headers.get('Content-Type') || 'image/jpeg' },
@@ -1067,7 +1071,7 @@ async function handleAdmin(
       const status = url.searchParams.get('status');
       const search = url.searchParams.get('search') || '';
       let q = 'FROM orders o JOIN products p ON o.product_id = p.id WHERE o.shop_id = ?';
-      const args: (string | number)[] = [shopId];
+      const args: (string | number)[] = [actualShopId];
       if (status) { q += ' AND o.status = ?'; args.push(status); }
       if (search) {
         q += ' AND (o.customer_phone LIKE ? OR o.customer_name LIKE ?)';
@@ -1093,9 +1097,9 @@ async function handleAdmin(
       const id = url.searchParams.get('id');
       if (!id) return apiError('Missing order id', 400);
       await env.DB.prepare('UPDATE orders SET status = ? WHERE id = ? AND shop_id = ?')
-        .bind(status, Number(id), shopId)
+        .bind(status, Number(id), actualShopId)
         .run();
-      const row = await env.DB.prepare('SELECT * FROM orders WHERE id = ? AND shop_id = ?').bind(Number(id), shopId).first();
+      const row = await env.DB.prepare('SELECT * FROM orders WHERE id = ? AND shop_id = ?').bind(Number(id), actualShopId).first();
       return apiSuccess(row);
     }
   }
@@ -1103,7 +1107,7 @@ async function handleAdmin(
   if (path === 'orders/export.csv' && request.method === 'GET') {
     const status = url.searchParams.get('status');
     let q = 'SELECT o.id, o.customer_name, o.customer_phone, o.customer_address, o.qty, o.note, o.status, o.created_at, p.name_en as product_name FROM orders o JOIN products p ON o.product_id = p.id WHERE o.shop_id = ?';
-    const args: (string | number)[] = [shopId];
+    const args: (string | number)[] = [actualShopId];
     if (status) { q += ' AND o.status = ?'; args.push(status); }
     q += ' ORDER BY o.created_at DESC';
     const { results } = await env.DB.prepare(q).bind(...args).all();
