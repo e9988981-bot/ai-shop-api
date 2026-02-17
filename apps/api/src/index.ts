@@ -181,7 +181,9 @@ export default {
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     };
     const origin = request.headers.get('Origin');
-    if (origin && checkOrigin(request, host)) {
+    const isBootstrap = url.pathname === '/api/admin/bootstrap' || url.pathname === '/api/admin/bootstrap/';
+    // CORS: allow same-origin; for bootstrap POST allow cross-origin (Pages vs Worker on different domains)
+    if (origin && (checkOrigin(request, host) || (isBootstrap && request.method === 'POST'))) {
       corsHeaders['Access-Control-Allow-Origin'] = origin;
     }
 
@@ -190,7 +192,6 @@ export default {
     }
 
     const shop = await resolveShop(env.DB, host);
-    const isBootstrap = url.pathname === '/api/admin/bootstrap' || url.pathname === '/api/admin/bootstrap/';
     if (!shop && !isBootstrap && (url.pathname.startsWith('/api/public') || url.pathname.startsWith('/api/admin') || url.pathname.startsWith('/api/auth'))) {
       return json({ ok: false, error: 'Shop not found' }, { status: 404, headers: corsHeaders });
     }
@@ -203,7 +204,7 @@ export default {
       } else if (url.pathname.startsWith('/api/auth/')) {
         res = await handleAuth(request, env, url, shop!.id, corsHeaders);
       } else if (url.pathname.startsWith('/api/admin/')) {
-        if (!checkOrigin(request, host) && ['POST', 'PUT', 'DELETE'].includes(request.method)) {
+        if (!isBootstrap && !checkOrigin(request, host) && ['POST', 'PUT', 'DELETE'].includes(request.method)) {
           res = apiError('Invalid origin', 403);
         } else {
           res = await handleAdmin(request, env, url, shop?.id ?? 0, corsHeaders);

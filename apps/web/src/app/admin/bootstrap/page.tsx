@@ -1,13 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiPost } from '@/lib/api';
+
+function getDefaultDomain(): string {
+  if (typeof window === 'undefined') return '';
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+  if (apiUrl) {
+    try {
+      return new URL(apiUrl).hostname;
+    } catch {
+      return window.location.hostname;
+    }
+  }
+  return window.location.hostname;
+}
 
 export default function BootstrapPage() {
   const router = useRouter();
   const [form, setForm] = useState({
-    domain: typeof window !== 'undefined' ? window.location.hostname : '',
+    domain: '',
     shop_name_lo: '',
     shop_name_en: '',
     email: '',
@@ -15,6 +28,10 @@ export default function BootstrapPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!form.domain) setForm((f) => ({ ...f, domain: getDefaultDomain() }));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,15 +55,18 @@ export default function BootstrapPage() {
         </p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Domain (e.g. myshop.com)</label>
+            <label className="block text-sm font-medium mb-1">Domain</label>
             <input
               type="text"
               required
               value={form.domain}
               onChange={(e) => setForm((f) => ({ ...f, domain: e.target.value }))}
-              placeholder="myshop.com"
+              placeholder="e.g. ai-shop-api.xxx.workers.dev or yourdomain.com"
               className="w-full px-3 py-2 border rounded-lg"
             />
+            <p className="text-xs text-gray-500 mt-1">
+              ใช้โดเมนที่เรียก API (ถ้าเว็บอยู่ Pages แยกจาก Worker ให้ใส่โดเมนของ Worker เช่น xxx.workers.dev)
+            </p>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
