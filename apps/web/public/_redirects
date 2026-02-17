@@ -1,2 +1,3 @@
-# SPA-style rewrites for product slugs (static export)
+# SPA-style rewrites for static export (single HTML per route, client reads real path)
 /products/* /products/default/ 200
+/admin/products/* /admin/products/edit/ 200

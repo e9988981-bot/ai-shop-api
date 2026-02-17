@@ -133,6 +133,9 @@ Production-ready multi-tenant system where **each custom domain = one shop**. Bu
 
 6. คลิก **Save and Deploy**
 
+**ถ้า Build ล้มเหลว (เช่น "missing generateStaticParams"):**  
+โปรเจกต์ใช้ `output: 'export'` (static export) ทุก dynamic route เช่น `[id]`, `[slug]` ต้องมี `generateStaticParams()` ในโค้ด และมี rewrite ใน `public/_redirects` ให้ path จริงไปที่ path ที่ generate (เช่น `/admin/products/*` → `/admin/products/edit/`)
+
 **ถ้า Pages deploy แล้วไม่มีหน้าเว็บ / 404 / ขาว:**
 - ตรวจสอบ **Build output directory** ว่าเป็น **`apps/web/out`** (ไม่ใช่ `out`)
 - ตรวจสอบ **Root directory** ว่าเว้นว่าง (ใช้ repo root)
