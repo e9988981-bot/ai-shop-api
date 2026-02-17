@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { apiGet, apiPost } from '@/lib/api';
 import { useLocale } from '@/contexts/LocaleContext';
@@ -120,7 +121,13 @@ export function ProductDetailPage({ slug }: { slug: string }) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="flex justify-end p-4">
+      <div className="flex justify-end items-center gap-2 p-4">
+        <Link
+          href="/admin/login"
+          className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900"
+        >
+          {locale === 'lo' ? 'ເຂົ້າສູ່ລະບົບ' : 'Admin'}
+        </Link>
         <LocaleToggle />
       </div>
       <main className="max-w-2xl mx-auto p-4">
