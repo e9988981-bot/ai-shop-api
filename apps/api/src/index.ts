@@ -199,6 +199,20 @@ export default {
       if (!adminOrigin) {
         return json({ ok: false, error: 'Admin not configured. Set ADMIN_ORIGIN in Worker settings.' }, { status: 503 });
       }
+      // อย่าตั้ง ADMIN_ORIGIN เป็น URL ของ Worker เอง — จะเกิด loop / error 1019
+      try {
+        const adminHost = new URL(adminOrigin).host;
+        if (normalizeHost(host) === normalizeHost(adminHost)) {
+          const msg =
+            'ADMIN_ORIGIN ต้องเป็น URL ของโปรเจกต์ Admin (Pages) ไม่ใช่ URL ของ Worker นี้ — สร้างโปรเจกต์ Pages แยกสำหรับ apps/admin แล้วใส่ URL นั้น (เช่น https://xxx.pages.dev)';
+          return new Response(
+            `<!DOCTYPE html><html><head><meta charset="utf-8"><title>ตั้งค่า Admin</title></head><body style="font-family:sans-serif;max-width:560px;margin:2rem auto;padding:1rem;"><h1>ตั้งค่า ADMIN_ORIGIN ผิด</h1><p>${msg}</p><p>ใน Dashboard → Worker → Variables: เปลี่ยน <strong>ADMIN_ORIGIN</strong> เป็น URL ของ Admin Pages (เช่น <code>https://ai-shop-admin.xxx.pages.dev</code>)</p></body></html>`,
+            { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+          );
+        }
+      } catch {
+        /* ignore */
+      }
       const path = url.pathname;
       const backendPath =
         path.startsWith('/admin') ? (path === '/admin' || path === '/admin/' ? '/' : path.slice(6)) : path;

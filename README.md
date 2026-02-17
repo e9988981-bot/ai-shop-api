@@ -104,7 +104,8 @@ Production-ready multi-tenant system where **each custom domain = one shop**. Bu
    - Value: URL ของ Admin Pages (จะสร้างใน Step 5) เช่น `https://ai-shop-admin.xxx.pages.dev`
    - หลัง deploy Admin Pages แล้วถึงจะใส่ค่าได้
 
-   **ถ้าเข้า /admin แล้วได้ error 1042:** โปรเจกต์ใช้ `compatibility_flags = ["global_fetch_strictly_public"]` ใน `wrangler.toml` แล้ว (ให้ Worker proxy ไปที่ Admin Pages ได้) — ต้อง **deploy Worker ใหม่** หลัง pull โค้ดล่าสุด
+   **สำคัญ:** `ADMIN_ORIGIN` ต้องเป็น **URL ของโปรเจกต์ Admin (Pages)** เท่านั้น เช่น `https://ai-shop-admin.xxx.pages.dev` — **อย่าตั้งเป็น URL ของ Worker** (เช่น `https://ai-shop-api.xxx.workers.dev`) เด็ดขาด จะเกิด error 1019 หรือ 1042  
+   **ถ้าเข้า /admin แล้วได้ error 1042:** deploy Worker ใหม่หลัง pull โค้ด (มี `compatibility_flags` ใน wrangler แล้ว)
 
 ---
 
