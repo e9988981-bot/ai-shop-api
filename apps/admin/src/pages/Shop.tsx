@@ -78,11 +78,11 @@ export default function Shop() {
 
       <div className="max-w-2xl space-y-6">
         {/* รูปโปรไฟล์ / หน้าปก */}
-        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-          <h2 className="font-semibold text-slate-800 mb-3">รูปภาพ</h2>
+        <div className="card-admin">
+          <h2 className="font-semibold text-slate-800 mb-4">รูปภาพ</h2>
           <div className="flex flex-wrap gap-6">
             <div>
-              <p className="text-sm text-slate-600 mb-2">รูปโปรไฟล์ร้าน (Avatar)</p>
+              <p className="text-sm font-medium text-slate-700 mb-2">รูปโปรไฟล์ร้าน (Avatar)</p>
               <div className="flex items-center gap-3">
                 {shop?.avatar_key ? (
                   <img
@@ -108,14 +108,14 @@ export default function Shop() {
                 <button
                   type="button"
                   onClick={() => avatarRef.current?.click()}
-                  className="px-3 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 text-sm"
+                  className="btn-secondary text-sm"
                 >
                   อัปโหลด
                 </button>
               </div>
             </div>
             <div>
-              <p className="text-sm text-slate-600 mb-2">รูปหน้าปก (Cover)</p>
+              <p className="text-sm font-medium text-slate-700 mb-2">รูปหน้าปก (Cover)</p>
               <div className="flex items-center gap-3">
                 {shop?.cover_key ? (
                   <img
@@ -141,7 +141,7 @@ export default function Shop() {
                 <button
                   type="button"
                   onClick={() => coverRef.current?.click()}
-                  className="px-3 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 text-sm"
+                  className="btn-secondary text-sm"
                 >
                   อัปโหลด
                 </button>
@@ -151,44 +151,44 @@ export default function Shop() {
         </div>
 
         {/* ชื่อร้าน */}
-        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-          <h2 className="font-semibold text-slate-800 mb-3">ชื่อร้าน</h2>
+        <div className="card-admin">
+          <h2 className="font-semibold text-slate-800 mb-4">ชื่อร้าน</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm text-slate-600 mb-1">ชื่อ (ลาว)</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">ชื่อ (ลาว)</label>
               <input
                 value={form.name_lo}
                 onChange={(e) => setForm((f) => ({ ...f, name_lo: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="input-admin"
               />
             </div>
             <div>
-              <label className="block text-sm text-slate-600 mb-1">ชื่อ (English)</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">ชื่อ (English)</label>
               <input
                 value={form.name_en}
                 onChange={(e) => setForm((f) => ({ ...f, name_en: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="input-admin"
               />
             </div>
           </div>
           <div className="mt-4">
-            <label className="block text-sm text-slate-600 mb-1">คำอธิบายร้าน (ไม่บังคับ)</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">คำอธิบายร้าน (ไม่บังคับ)</label>
             <textarea
               value={form.desc_en}
               onChange={(e) => setForm((f) => ({ ...f, desc_en: e.target.value }))}
               rows={2}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="input-admin"
               placeholder="คำอธิบายสั้นๆ เกี่ยวกับร้าน"
             />
           </div>
         </div>
 
         {/* สี */}
-        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-          <h2 className="font-semibold text-slate-800 mb-3">สีประจำร้าน</h2>
+        <div className="card-admin">
+          <h2 className="font-semibold text-slate-800 mb-4">สีประจำร้าน</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm text-slate-600 mb-1">สีหลัก</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">สีหลัก</label>
               <input
                 type="color"
                 value={form.theme_primary}
@@ -197,7 +197,7 @@ export default function Shop() {
               />
             </div>
             <div>
-              <label className="block text-sm text-slate-600 mb-1">สีรอง</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">สีรอง</label>
               <input
                 type="color"
                 value={form.theme_secondary}
@@ -209,8 +209,8 @@ export default function Shop() {
         </div>
 
         {/* WhatsApp template */}
-        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-          <h2 className="font-semibold text-slate-800 mb-3">ข้อความ template สำหรับ WhatsApp</h2>
+        <div className="card-admin">
+          <h2 className="font-semibold text-slate-800 mb-4">ข้อความ template สำหรับ WhatsApp</h2>
           <p className="text-sm text-slate-500 mb-2">
             ใช้ตัวแปร: {'{{product_name}}'}, {'{{qty}}'}, {'{{price}}'}, {'{{customer_name}}'}, {'{{customer_phone}}'}, {'{{customer_address}}'}, {'{{note}}'}
           </p>
@@ -218,7 +218,7 @@ export default function Shop() {
             value={form.wa_template}
             onChange={(e) => setForm((f) => ({ ...f, wa_template: e.target.value }))}
             rows={5}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+            className="input-admin font-mono text-sm"
             placeholder="Hi! I would like to order..."
           />
         </div>
@@ -227,7 +227,7 @@ export default function Shop() {
           type="button"
           onClick={handleSave}
           disabled={saving}
-          className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition"
+          className="btn-primary"
         >
           {saving ? 'กำลังบันทึก...' : 'บันทึก'}
         </button>

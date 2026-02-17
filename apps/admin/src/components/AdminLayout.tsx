@@ -3,13 +3,18 @@ import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import { apiGet, apiPost } from '@/lib/api';
 
 const nav = [
-  { href: '/', label: 'แดชบอร์ด' },
-  { href: '/shop', label: 'ตั้งค่าข้อมูลร้าน' },
-  { href: '/products', label: 'สินค้า' },
-  { href: '/orders', label: 'ออเดอร์' },
-  { href: '/categories', label: 'หมวดหมู่' },
-  { href: '/wa-numbers', label: 'เบอร์ WhatsApp' },
+  { href: '/', label: 'แดชบอร์ด', exact: true },
+  { href: '/shop', label: 'ตั้งค่าข้อมูลร้าน', exact: true },
+  { href: '/products', label: 'สินค้า', exact: false },
+  { href: '/orders', label: 'ออเดอร์', exact: true },
+  { href: '/categories', label: 'หมวดหมู่', exact: true },
+  { href: '/wa-numbers', label: 'เบอร์ WhatsApp', exact: true },
 ];
+
+function isActive(path: string, href: string, exact: boolean) {
+  if (exact) return path === href;
+  return path === href || path.startsWith(href + '/');
+}
 
 export default function AdminLayout() {
   const navigate = useNavigate();
@@ -41,38 +46,41 @@ export default function AdminLayout() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen flex bg-slate-50">
-      <aside className="w-56 bg-slate-800 text-white p-4 flex flex-col shrink-0">
-        <span className="font-bold text-lg mb-6">หลังบ้าน</span>
-        <nav className="flex-1 space-y-0.5">
-          {nav.map((n) => (
-            <Link
-              key={n.href}
-              to={n.href}
-              className={`block px-3 py-2.5 rounded-lg text-sm ${
-                location.pathname === n.href || (n.href !== '/' && location.pathname.startsWith(n.href))
-                  ? 'bg-blue-600 text-white'
-                  : 'text-slate-300 hover:bg-slate-700 hover:text-white'
-              }`}
-            >
-              {n.label}
-            </Link>
-          ))}
+    <div className="min-h-screen flex bg-slate-100">
+      <aside className="w-60 bg-slate-800 text-white flex flex-col shrink-0 shadow-lg">
+        <div className="p-5 border-b border-slate-700">
+          <span className="font-bold text-lg tracking-tight">หลังบ้าน</span>
+        </div>
+        <nav className="flex-1 p-3 space-y-0.5">
+          {nav.map((n) => {
+            const active = isActive(location.pathname, n.href, n.exact ?? false);
+            return (
+              <Link
+                key={n.href}
+                to={n.href}
+                className={`block px-3 py-2.5 rounded-lg text-sm font-medium transition ${
+                  active ? 'bg-blue-600 text-white shadow' : 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                }`}
+              >
+                {n.label}
+              </Link>
+            );
+          })}
         </nav>
-        <div className="border-t border-slate-700 pt-4 mt-4">
+        <div className="border-t border-slate-700 p-4">
           <p className="text-sm text-slate-400 truncate" title={user.email}>
             {user.email}
           </p>
           <button
             type="button"
             onClick={handleLogout}
-            className="mt-2 text-sm text-red-300 hover:text-red-200"
+            className="mt-2 text-sm text-slate-400 hover:text-red-300 transition"
           >
             ออกจากระบบ
           </button>
         </div>
       </aside>
-      <main className="flex-1 p-6 overflow-auto">
+      <main className="flex-1 p-6 md:p-8 overflow-auto">
         <Outlet />
       </main>
     </div>

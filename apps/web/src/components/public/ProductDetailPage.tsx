@@ -119,13 +119,13 @@ export function ProductDetailPage({ slug }: { slug: string }) {
   const currentImage = images[imageIndex] || images[0];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50">
       <div className="flex justify-end p-4">
         <LocaleToggle />
       </div>
-      <main className="max-w-2xl mx-auto p-4">
-        <div className="bg-white rounded-xl shadow overflow-hidden">
-          <div className="aspect-square bg-gray-100 relative">
+      <main className="max-w-2xl mx-auto p-4 pb-24">
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
+          <div className="aspect-square bg-slate-100 relative">
             {currentImage ? (
               <img
                 src={imgUrl(currentImage.r2_key)}
@@ -151,20 +151,20 @@ export function ProductDetailPage({ slug }: { slug: string }) {
               </div>
             )}
           </div>
-          <div className="p-4">
-            <h1 className="text-xl font-bold">
+          <div className="p-5">
+            <h1 className="text-xl font-bold text-slate-800">
               {getBilingual(locale, { lo: product.name_lo, en: product.name_en })}
             </h1>
-            <p className="text-2xl font-bold text-blue-600 mt-2">৳{product.price}</p>
+            <p className="text-2xl font-bold mt-2 text-blue-600">৳{product.price}</p>
             {(product.desc_lo || product.desc_en) && (
-              <p className="mt-4 text-gray-600">
+              <p className="mt-4 text-slate-600 leading-relaxed">
                 {getBilingual(locale, { lo: product.desc_lo || '', en: product.desc_en || '' })}
               </p>
             )}
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4 bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
           {product.option_groups?.map((g) => (
             <div key={g.id}>
               <label className="block text-sm font-medium mb-1">
@@ -177,7 +177,7 @@ export function ProductDetailPage({ slug }: { slug: string }) {
                 onChange={(e) =>
                   setSelectedOptions((o) => ({ ...o, [String(g.id)]: e.target.value }))
                 }
-                className="w-full px-3 py-2 border rounded-lg"
+                className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               >
                 <option value="">-- {t(locale, 'product.select_options')} --</option>
                 {g.values?.map((v) => (
@@ -195,7 +195,7 @@ export function ProductDetailPage({ slug }: { slug: string }) {
               <select
                 value={waNumberId ?? ''}
                 onChange={(e) => setWaNumberId(Number(e.target.value))}
-                className="w-full px-3 py-2 border rounded-lg"
+                className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
               >
                 {product.wa_numbers.map((n) => (
                   <option key={n.id} value={n.id}>
@@ -215,11 +215,11 @@ export function ProductDetailPage({ slug }: { slug: string }) {
               required
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg"
+              className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className="block text-sm font-medium text-slate-700 mb-1">
               {t(locale, 'form.phone')} *
             </label>
             <input
@@ -227,22 +227,22 @@ export function ProductDetailPage({ slug }: { slug: string }) {
               required
               value={customerPhone}
               onChange={(e) => setCustomerPhone(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg"
+              className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className="block text-sm font-medium text-slate-700 mb-1">
               {t(locale, 'form.address')}
             </label>
             <textarea
               value={customerAddress}
               onChange={(e) => setCustomerAddress(e.target.value)}
               rows={2}
-              className="w-full px-3 py-2 border rounded-lg"
+              className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className="block text-sm font-medium text-slate-700 mb-1">
               {t(locale, 'product.quantity')} *
             </label>
             <input
@@ -252,29 +252,29 @@ export function ProductDetailPage({ slug }: { slug: string }) {
               required
               value={qty}
               onChange={(e) => setQty(Number(e.target.value))}
-              className="w-full px-3 py-2 border rounded-lg"
+              className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className="block text-sm font-medium text-slate-700 mb-1">
               {t(locale, 'product.note')}
             </label>
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
               rows={2}
-              className="w-full px-3 py-2 border rounded-lg"
+              className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
 
           {error && (
-            <div className="text-red-600 text-sm">{error}</div>
+            <div className="text-red-600 text-sm bg-red-50 px-3 py-2 rounded-xl">{error}</div>
           )}
 
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="w-full py-3.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 disabled:opacity-50 shadow-sm transition"
           >
             {submitting ? '...' : t(locale, 'product.whatsapp_order')}
           </button>

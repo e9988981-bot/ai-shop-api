@@ -35,7 +35,6 @@ interface Product {
 
 export default function ProductEdit() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -175,16 +174,16 @@ export default function ProductEdit() {
 
       <div className="max-w-2xl space-y-6">
         {/* ข้อมูลพื้นฐาน */}
-        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-          <h2 className="font-semibold text-slate-800 mb-3">ข้อมูลสินค้า</h2>
-          <div className="grid grid-cols-1 gap-3">
+        <div className="card-admin">
+          <h2 className="font-semibold text-slate-800 mb-4">ข้อมูลสินค้า</h2>
+          <div className="grid grid-cols-1 gap-4">
             <div>
-              <label className="block text-sm text-slate-600 mb-1">Slug (ภาษาอังกฤษ)</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Slug (ภาษาอังกฤษ)</label>
               <input
                 type="text"
                 value={form.slug}
                 onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2"
+                className="input-admin"
                 placeholder="product-name"
               />
             </div>
@@ -213,7 +212,7 @@ export default function ProductEdit() {
               <select
                 value={form.category_id ?? ''}
                 onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value ? Number(e.target.value) : null }))}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2"
+                className="input-admin"
               >
                 <option value="">— ไม่มี —</option>
                 {categories.map((c) => (
@@ -222,42 +221,42 @@ export default function ProductEdit() {
               </select>
             </div>
             <div>
-              <label className="block text-sm text-slate-600 mb-1">ราคา</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">ราคา</label>
               <input
                 type="number"
                 min={0}
                 step={0.01}
                 value={form.price}
                 onChange={(e) => setForm((f) => ({ ...f, price: Number(e.target.value) || 0 }))}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2"
+                className="input-admin"
               />
             </div>
             <div>
-              <label className="block text-sm text-slate-600 mb-1">สถานะ</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">สถานะ</label>
               <select
                 value={form.status}
                 onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as 'draft' | 'published' }))}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2"
+                className="input-admin"
               >
                 <option value="draft">แบบร่าง</option>
                 <option value="published">เผยแพร่</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm text-slate-600 mb-1">คำอธิบาย (ลาว)</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">คำอธิบาย (ลาว)</label>
               <textarea
                 value={form.desc_lo}
                 onChange={(e) => setForm((f) => ({ ...f, desc_lo: e.target.value }))}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2"
+                className="input-admin"
                 rows={2}
               />
             </div>
             <div>
-              <label className="block text-sm text-slate-600 mb-1">คำอธิบาย (English)</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">คำอธิบาย (English)</label>
               <textarea
                 value={form.desc_en}
                 onChange={(e) => setForm((f) => ({ ...f, desc_en: e.target.value }))}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2"
+                className="input-admin"
                 rows={2}
               />
             </div>
@@ -266,15 +265,15 @@ export default function ProductEdit() {
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="mt-4 btn-primary"
           >
             {saving ? 'กำลังบันทึก...' : 'บันทึกข้อมูล'}
           </button>
         </div>
 
         {/* รูปสินค้า */}
-        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-          <h2 className="font-semibold text-slate-800 mb-3">รูปสินค้า</h2>
+        <div className="card-admin">
+          <h2 className="font-semibold text-slate-800 mb-4">รูปสินค้า</h2>
           <p className="text-sm text-slate-500 mb-3">รูปแรกที่แสดงบนหน้าร้านจะใช้เป็นรูปปก (cover) — กด «ตั้งเป็นรูปปก» ได้</p>
           <div className="flex flex-wrap gap-3">
             {images.map((img, idx) => (
